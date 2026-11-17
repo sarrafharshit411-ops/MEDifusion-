@@ -2,6 +2,14 @@
 MediFusion AI - Unified Multi-Dataset Image Model Training Pipeline
 Trains MedicalImageClassifier models on any registered medical image dataset.
 
+GPU-Optimized with:
+    - AMP (Automatic Mixed Precision) for 2-3x speedup on RTX GPUs
+    - cuDNN benchmark mode for CUDA kernel autotuning
+    - Gradient clipping for training stability
+    - OneCycleLR scheduler for superior convergence
+    - Label smoothing cross-entropy for better generalization
+    - Progressive unfreezing strategy
+
 Supports:
     - chest_xray:   Chest X-Ray Pneumonia (2-class)
     - brain_tumor:  Brain Tumor MRI (4-class)
@@ -26,7 +34,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from torch.optim.lr_scheduler import CosineAnnealingLR
+from torch.optim.lr_scheduler import CosineAnnealingLR, OneCycleLR
+from torch.amp import autocast, GradScaler
 
 # Add project root to path
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
@@ -98,23 +107,36 @@ def _get_data_loaders(dataset_key: str, config: dict):
         raise ValueError(f"Unknown dataset key: {dataset_key}")
 
 
-# ─── Training Loop ──────────────────────────────────────────────────
+# ─── GPU-Optimized Training Loop ────────────────────────────────────
 
-def train_one_epoch(model, loader, criterion, optimizer, device) -> Dict:
-    """Train for one epoch. Returns loss and accuracy."""
+def train_one_epoch(model, loader, criterion, optimizer, device, scaler=None, grad_clip=1.0) -> Dict:
+    """Train for one epoch with AMP mixed-precision and gradient clipping."""
     model.train()
     running_loss = 0.0
     correct = 0
     total = 0
+    use_amp = scaler is not None and device.type == "cuda"
 
     for batch_idx, (images, labels) in enumerate(loader):
-        images, labels = images.to(device), labels.to(device)
+        images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
 
-        optimizer.zero_grad()
-        logits, _ = model(images)
-        loss = criterion(logits, labels)
-        loss.backward()
-        optimizer.step()
+        optimizer.zero_grad(set_to_none=True)  # More efficient than zero_grad()
+
+        if use_amp:
+            with autocast(device_type="cuda"):
+                logits, _ = model(images)
+                loss = criterion(logits, labels)
+            scaler.scale(loss).backward()
+            scaler.unscale_(optimizer)
+            torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+            scaler.step(optimizer)
+            scaler.update()
+        else:
+            logits, _ = model(images)
+            loss = criterion(logits, labels)
+            loss.backward()
+            torch.nn.utils.clip_grad_norm_(model.parameters(), grad_clip)
+            optimizer.step()
 
         running_loss += loss.item() * images.size(0)
         _, predicted = logits.max(1)
@@ -131,7 +153,7 @@ def train_one_epoch(model, loader, criterion, optimizer, device) -> Dict:
 
 
 def evaluate(model, loader, criterion, device) -> Dict:
-    """Evaluate model on a data loader."""
+    """Evaluate model on a data loader with AMP inference."""
     model.eval()
     running_loss = 0.0
     correct = 0
@@ -139,15 +161,22 @@ def evaluate(model, loader, criterion, device) -> Dict:
     all_preds = []
     all_labels = []
     all_probs = []
+    use_amp = device.type == "cuda"
 
     with torch.no_grad():
         for images, labels in loader:
-            images, labels = images.to(device), labels.to(device)
-            logits, _ = model(images)
-            loss = criterion(logits, labels)
+            images, labels = images.to(device, non_blocking=True), labels.to(device, non_blocking=True)
+
+            if use_amp:
+                with autocast(device_type="cuda"):
+                    logits, _ = model(images)
+                    loss = criterion(logits, labels)
+            else:
+                logits, _ = model(images)
+                loss = criterion(logits, labels)
 
             running_loss += loss.item() * images.size(0)
-            probs = torch.softmax(logits, dim=1)
+            probs = torch.softmax(logits.float(), dim=1)  # Ensure float32 for softmax
             _, predicted = logits.max(1)
             total += labels.size(0)
             correct += predicted.eq(labels).sum().item()
@@ -165,7 +194,7 @@ def evaluate(model, loader, criterion, device) -> Dict:
     }
 
 
-# ─── Main Training Function ─────────────────────────────────────────
+# ─── Main Training Function (GPU-Optimized) ─────────────────────────
 
 def train_single_image_model(
     dataset_key: str,
@@ -174,7 +203,15 @@ def train_single_image_model(
     learning_rate: Optional[float] = None,
 ) -> Dict:
     """
-    Full training pipeline for a single image dataset.
+    Full GPU-optimized training pipeline for a single image dataset.
+
+    Features:
+        - AMP mixed-precision training (FP16 on CUDA for 2-3x speedup)
+        - cuDNN benchmark mode for optimal CUDA kernel selection
+        - OneCycleLR with warmup for superior convergence
+        - Gradient clipping for training stability
+        - Label smoothing cross-entropy for better generalization
+        - Best-model checkpointing with early stopping
 
     Args:
         dataset_key: Key identifying the dataset (e.g., 'brain_tumor')
@@ -188,6 +225,15 @@ def train_single_image_model(
     set_seed(config["training"]["seed"])
     device = get_device()
 
+    # ── GPU Optimization Flags ──
+    if device.type == "cuda":
+        torch.backends.cudnn.benchmark = True   # Autotune CUDA kernels
+        torch.backends.cudnn.deterministic = False  # Allow non-deterministic for speed
+        logger.info(f"🚀 GPU detected: {torch.cuda.get_device_name(0)} | AMP enabled")
+        logger.info(f"   VRAM: {torch.cuda.get_device_properties(0).total_memory / 1024**3:.1f} GB")
+    else:
+        logger.info(f"⚠️  Running on CPU (no GPU acceleration)")
+
     model_config = config.get("image_models", {}).get(dataset_key, {})
     reg_config = IMAGE_MODEL_CONFIGS.get(dataset_key, {})
 
@@ -197,12 +243,14 @@ def train_single_image_model(
     weight_decay = model_config.get("weight_decay", 0.0001)
     patience = model_config.get("patience", 3)
     num_classes = reg_config.get("num_classes", 2)
+    label_smoothing = 0.1  # Regularization for better generalization
 
     logger.info(f"")
-    logger.info(f"{'─' * 60}")
-    logger.info(f"Training [{dataset_key.upper()}] image model on {device}")
-    logger.info(f"  Classes: {num_classes}, Epochs: {num_epochs}, LR: {lr}")
-    logger.info(f"{'─' * 60}")
+    logger.info(f"{'═' * 60}")
+    logger.info(f"  TRAINING [{dataset_key.upper()}] on {device}")
+    logger.info(f"  Classes: {num_classes} | Epochs: {num_epochs} | LR: {lr}")
+    logger.info(f"  Label Smoothing: {label_smoothing} | Grad Clip: 1.0")
+    logger.info(f"{'═' * 60}")
 
     # Paths
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -222,36 +270,95 @@ def train_single_image_model(
     )
     model.to(device)
 
-    # Loss with class weights for imbalance
+    # Loss with class weights + label smoothing for regularization
     class_weights = data_info["class_weights"].to(device)
-    criterion = nn.CrossEntropyLoss(weight=class_weights)
+    criterion = nn.CrossEntropyLoss(weight=class_weights, label_smoothing=label_smoothing)
 
-    # Optimizer (only trainable params)
+    # Optimizer (only trainable params) with slightly higher LR for GPU training
+    trainable_params = list(filter(lambda p: p.requires_grad, model.parameters()))
     optimizer = optim.AdamW(
-        filter(lambda p: p.requires_grad, model.parameters()),
+        trainable_params,
         lr=lr,
         weight_decay=weight_decay,
+        betas=(0.9, 0.999),
     )
 
-    # Scheduler
-    scheduler = CosineAnnealingLR(optimizer, T_max=num_epochs)
+    # OneCycleLR: warmup then cosine decay — superior to plain CosineAnnealing
+    steps_per_epoch = len(train_loader)
+    scheduler = OneCycleLR(
+        optimizer,
+        max_lr=lr * 10,        # Peak LR = 10x base LR
+        epochs=num_epochs,
+        steps_per_epoch=steps_per_epoch,
+        pct_start=0.1,         # 10% warmup
+        anneal_strategy="cos",
+        div_factor=10,         # Initial LR = max_lr / 10
+        final_div_factor=100,  # Final LR = max_lr / 1000
+    )
+
+    # AMP GradScaler for mixed-precision on CUDA
+    scaler = GradScaler() if device.type == "cuda" else None
 
     # Training loop with early stopping
     best_val_loss = float("inf")
+    best_val_acc = 0.0
     patience_counter = 0
     history = {"train_loss": [], "train_acc": [], "val_loss": [], "val_acc": []}
     model_filename = f"{dataset_key}_image_model.pth"
 
-    logger.info(f"Starting training for {num_epochs} epochs...")
+    logger.info(f"Starting training for {num_epochs} epochs (OneCycleLR, AMP={'ON' if scaler else 'OFF'})...")
     start_time = time.time()
 
     for epoch in range(1, num_epochs + 1):
         epoch_start = time.time()
 
-        train_metrics = train_one_epoch(model, train_loader, criterion, optimizer, device)
-        val_metrics = evaluate(model, val_loader, criterion, device)
+        # ── Train with AMP + gradient clipping ──
+        model.train()
+        running_loss = 0.0
+        correct = 0
+        total = 0
+        use_amp = scaler is not None
 
-        scheduler.step()
+        for batch_idx, (images, labels) in enumerate(train_loader):
+            images = images.to(device, non_blocking=True)
+            labels = labels.to(device, non_blocking=True)
+
+            optimizer.zero_grad(set_to_none=True)
+
+            if use_amp:
+                with autocast(device_type="cuda"):
+                    logits, _ = model(images)
+                    loss = criterion(logits, labels)
+                scaler.scale(loss).backward()
+                scaler.unscale_(optimizer)
+                torch.nn.utils.clip_grad_norm_(trainable_params, 1.0)
+                scaler.step(optimizer)
+                scaler.update()
+            else:
+                logits, _ = model(images)
+                loss = criterion(logits, labels)
+                loss.backward()
+                torch.nn.utils.clip_grad_norm_(trainable_params, 1.0)
+                optimizer.step()
+
+            scheduler.step()  # OneCycleLR steps per batch
+
+            running_loss += loss.item() * images.size(0)
+            _, predicted = logits.max(1)
+            total += labels.size(0)
+            correct += predicted.eq(labels).sum().item()
+
+            if (batch_idx + 1) % 30 == 0:
+                current_lr = optimizer.param_groups[0]["lr"]
+                logger.info(
+                    f"  Batch {batch_idx + 1}/{steps_per_epoch}, "
+                    f"Loss: {loss.item():.4f}, LR: {current_lr:.2e}"
+                )
+
+        train_metrics = {"loss": running_loss / total, "accuracy": correct / total}
+
+        # ── Validation ──
+        val_metrics = evaluate(model, val_loader, criterion, device)
 
         history["train_loss"].append(train_metrics["loss"])
         history["train_acc"].append(train_metrics["accuracy"])
@@ -265,12 +372,13 @@ def train_single_image_model(
             f"Val Loss: {val_metrics['loss']:.4f}, Acc: {val_metrics['accuracy']:.4f}"
         )
 
-        # Early stopping
-        if val_metrics["loss"] < best_val_loss:
+        # Early stopping on best val accuracy (more robust than val loss with label smoothing)
+        if val_metrics["accuracy"] > best_val_acc:
+            best_val_acc = val_metrics["accuracy"]
             best_val_loss = val_metrics["loss"]
             patience_counter = 0
             torch.save(model.state_dict(), os.path.join(models_dir, model_filename))
-            logger.info(f"  → New best model saved (val_loss: {best_val_loss:.4f})")
+            logger.info(f"  ✓ New best model saved (val_acc: {best_val_acc:.4f}, val_loss: {best_val_loss:.4f})")
         else:
             patience_counter += 1
             if patience_counter >= patience:
@@ -278,7 +386,7 @@ def train_single_image_model(
                 break
 
     total_time = time.time() - start_time
-    logger.info(f"[{dataset_key}] Training completed in {total_time:.1f}s")
+    logger.info(f"[{dataset_key}] Training completed in {total_time:.1f}s | Best Val Acc: {best_val_acc:.4f}")
 
     # Load best model and evaluate on test set
     model.load_state_dict(
@@ -286,7 +394,7 @@ def train_single_image_model(
     )
     test_metrics = evaluate(model, test_loader, criterion, device)
 
-    logger.info(f"[{dataset_key}] Test Accuracy: {test_metrics['accuracy']:.4f}")
+    logger.info(f"[{dataset_key}] ★ Test Accuracy: {test_metrics['accuracy']:.4f}")
 
     # Save metrics
     results = {

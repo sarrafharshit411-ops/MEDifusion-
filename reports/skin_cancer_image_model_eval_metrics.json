@@ -1,0 +1,53 @@
+{
+  "model": "Skin Cancer (HAM10000) (ResNet18)",
+  "accuracy": 0.5384615384615384,
+  "precision_macro": 0.46742166582372097,
+  "recall_macro": 0.7691292850821686,
+  "f1_macro": 0.5094975667785244,
+  "roc_auc": 0.9174193068363491,
+  "pr_auc": 0.765052207342394,
+  "per_class": {
+    "Actinic Keratoses": {
+      "precision": 0.46808510638297873,
+      "recall": 0.6875,
+      "f1": 0.5569620253164557,
+      "support": 32.0
+    },
+    "Basal Cell Carcinoma": {
+      "precision": 0.6060606060606061,
+      "recall": 0.9090909090909091,
+      "f1": 0.7272727272727273,
+      "support": 44.0
+    },
+    "Benign Keratosis": {
+      "precision": 0.4457831325301205,
+      "recall": 0.6491228070175439,
+      "f1": 0.5285714285714286,
+      "support": 114.0
+    },
+    "Dermatofibroma": {
+      "precision": 0.1348314606741573,
+      "recall": 0.9230769230769231,
+      "f1": 0.23529411764705882,
+      "support": 13.0
+    },
+    "Melanoma": {
+      "precision": 0.30067567567567566,
+      "recall": 0.7876106194690266,
+      "f1": 0.4352078239608802,
+      "support": 113.0
+    },
+    "Melanocytic Nevi": {
+      "precision": 0.9965156794425087,
+      "recall": 0.42750373692077726,
+      "f1": 0.5983263598326359,
+      "support": 669.0
+    },
+    "Vascular Lesions": {
+      "precision": 0.32,
+      "recall": 1.0,
+      "f1": 0.48484848484848486,
+      "support": 16.0
+    }
+  }
+}

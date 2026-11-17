@@ -2,13 +2,13 @@
 # Central configuration for all components
 
 dataset:
-  xray_path: "C:\\Users\\vansh\\.cache\\kagglehub\\datasets\\paultimothymooney\\chest-xray-pneumonia\\versions\\2\\chest_xray"
-  symptom_path: "C:\\Users\\vansh\\.cache\\kagglehub\\datasets\\miltonmacgyver\\symptom-based-disease-prediction-dataset\\versions\\1\\disease_prediction.csv"
+  xray_path: "C:/Users/dhruv/.cache/kagglehub/datasets/paultimothymooney/chest-xray-pneumonia/versions/2/chest_xray"
+  symptom_path: ""
   # New image dataset paths (auto-downloaded via kagglehub if not present)
-  brain_tumor_path: ""
-  skin_cancer_path: ""
-  retinopathy_path: ""
-  blood_cell_path: ""
+  brain_tumor_path: "C:/Users/dhruv/.cache/kagglehub/datasets/masoudnickparvar/brain-tumor-mri-dataset/versions/2"
+  skin_cancer_path: "C:/Users/dhruv/.cache/kagglehub/datasets/kmader/skin-cancer-mnist-ham10000/versions/2"
+  retinopathy_path: "C:/Users/dhruv/.cache/kagglehub/datasets/amanneo/diabetic-retinopathy-resized-arranged/versions/1"
+  blood_cell_path: "C:/Users/dhruv/.cache/kagglehub/datasets/paultimothymooney/blood-cells/versions/6/dataset2-master/dataset2-master"
   
 training:
   seed: 42
@@ -30,17 +30,17 @@ image_models:
   brain_tumor:
     input_size: 224
     batch_size: 32
-    epochs: 12
+    epochs: 20
     learning_rate: 0.0001
     weight_decay: 0.0001
-    patience: 4
+    patience: 6
   skin_cancer:
     input_size: 224
     batch_size: 32
-    epochs: 15
+    epochs: 25
     learning_rate: 0.00008
     weight_decay: 0.0002
-    patience: 5
+    patience: 7
   retinopathy:
     input_size: 224
     batch_size: 32
@@ -51,10 +51,10 @@ image_models:
   blood_cell:
     input_size: 224
     batch_size: 32
-    epochs: 10
+    epochs: 15
     learning_rate: 0.0001
     weight_decay: 0.0001
-    patience: 3
+    patience: 5
   
 symptom_model:
   num_classes: 3  # Malaria, Pneumonia, Typhoid

@@ -223,6 +223,55 @@ def run_evaluation(config: dict = None):
         metrics = compute_metrics(data["labels"], data["predictions"], data["probabilities"], clinical_classes, "Clinical (XGBoost)")
         all_metrics["Clinical-Only"] = metrics
     
+    # --- Advanced Image Models ---
+    # Evaluate all new image models if their test predictions are available
+    from src.models.multi_image_model import IMAGE_MODEL_CONFIGS
+    
+    advanced_models = {
+        "brain_tumor": "Brain Tumor MRI",
+        "skin_cancer": "Skin Cancer (HAM10000)",
+        "retinopathy": "Diabetic Retinopathy",
+        "blood_cell": "Blood Cell Classification",
+    }
+    
+    for model_key, display_name in advanced_models.items():
+        preds_path = os.path.join(reports_dir, f"{model_key}_image_model_test_preds.npz")
+        if os.path.exists(preds_path):
+            logger.info(f"Evaluating {display_name} Model...")
+            data = np.load(preds_path)
+            
+            config_entry = IMAGE_MODEL_CONFIGS.get(model_key, {})
+            class_names = config_entry.get("display_names", config_entry.get("class_names", []))
+            
+            metrics = compute_metrics(
+                data["labels"], data["predictions"], data["probabilities"],
+                class_names, f"{display_name} (ResNet18)"
+            )
+            all_metrics[display_name] = metrics
+            
+            # Confusion matrix
+            plot_confusion_matrix(
+                data["labels"], data["predictions"], class_names,
+                os.path.join(reports_dir, f"{model_key}_confusion_matrix.png"),
+                f"{display_name} - Confusion Matrix"
+            )
+            
+            # ROC curves
+            plot_roc_curves(
+                data["labels"], data["probabilities"], class_names,
+                os.path.join(reports_dir, f"{model_key}_roc_curves.png"),
+                f"{display_name} - ROC Curves"
+            )
+            
+            # Also save individual model metrics
+            save_metrics(
+                {k: v for k, v in metrics.items()},
+                os.path.join(reports_dir, f"{model_key}_image_model_eval_metrics.json"),
+            )
+            logger.info(f"[OK] {display_name}: Acc={metrics['accuracy']:.4f}, F1={metrics['f1_macro']:.4f}")
+        else:
+            logger.info(f"  ○ {display_name} predictions not found at {preds_path} (skipped)")
+    
     # --- Comparison ---
     if all_metrics:
         plot_model_comparison(all_metrics, os.path.join(reports_dir, "model_comparison.png"))
@@ -234,16 +283,16 @@ def run_evaluation(config: dict = None):
         logger.info("\n" + "="*70)
         logger.info("MODEL COMPARISON SUMMARY")
         logger.info("="*70)
-        header = f"{'Model':<20} {'Accuracy':>10} {'Precision':>10} {'Recall':>10} {'F1':>10} {'ROC-AUC':>10}"
+        header = f"{'Model':<30} {'Accuracy':>10} {'Precision':>10} {'Recall':>10} {'F1':>10} {'ROC-AUC':>10}"
         logger.info(header)
-        logger.info("-" * 70)
+        logger.info("-" * 100)
         for name, m in all_metrics.items():
             roc = f"{m['roc_auc']:.4f}" if m.get('roc_auc') else "N/A"
             logger.info(
-                f"{name:<20} {m['accuracy']:>10.4f} {m['precision_macro']:>10.4f} "
+                f"{name:<30} {m['accuracy']:>10.4f} {m['precision_macro']:>10.4f} "
                 f"{m['recall_macro']:>10.4f} {m['f1_macro']:>10.4f} {roc:>10}"
             )
-        logger.info("="*70)
+        logger.info("="*100)
     
     return all_metrics
 

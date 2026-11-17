@@ -110,7 +110,7 @@ class GradCAM:
         weights = gradients.mean(dim=(1, 2))  # (C,)
         
         # Weighted combination of activation maps
-        cam = torch.zeros(activations.shape[1:], dtype=torch.float32)
+        cam = torch.zeros(activations.shape[1:], dtype=torch.float32, device=activations.device)
         for i, w in enumerate(weights):
             cam += w * activations[i]
         
@@ -154,7 +154,10 @@ class GradCAM:
         img_array = np.array(original_image.resize((224, 224)).convert("RGB"))
         
         # Apply colormap to heatmap
-        cmap = cm.get_cmap(colormap)
+        try:
+            cmap = plt.colormaps[colormap]
+        except (AttributeError, KeyError):
+            cmap = cm.get_cmap(colormap)
         heatmap_colored = cmap(heatmap)[:, :, :3]  # (H, W, 3) in [0, 1]
         heatmap_colored = (heatmap_colored * 255).astype(np.uint8)
         
@@ -164,7 +167,7 @@ class GradCAM:
         # Create figure
         fig, axes = plt.subplots(1, 3, figsize=(12, 4))
         axes[0].imshow(img_array)
-        axes[0].set_title("Original X-Ray")
+        axes[0].set_title("Original Scan")
         axes[0].axis("off")
         
         axes[1].imshow(heatmap, cmap=colormap)

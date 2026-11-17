@@ -51,12 +51,28 @@
         }
     };
 
+    function setSymptomStepperStep(stepNum) {
+        const stepper = document.getElementById("symptomStepper");
+        if (!stepper) return;
+        const items = stepper.querySelectorAll(".ia-step-item");
+        items.forEach(item => {
+            const s = parseInt(item.getAttribute("data-step"), 10);
+            item.classList.remove("active", "completed");
+            if (s < stepNum) {
+                item.classList.add("completed");
+            } else if (s === stepNum) {
+                item.classList.add("active");
+            }
+        });
+    }
+
     // Initialize on DOM ready
     document.addEventListener("DOMContentLoaded", () => {
         init();
     });
 
     async function init() {
+        setSymptomStepperStep(1);
         setupEventListeners();
         await loadSymptomCatalog();
         renderPresetButtons();
@@ -209,11 +225,13 @@
         if (!chipsContainer || !tray) return;
 
         if (count === 0) {
+            setSymptomStepperStep(1);
             tray.style.display = "none";
             chipsContainer.innerHTML = "";
             return;
         }
 
+        setSymptomStepperStep(2);
         tray.style.display = "block";
         let html = "";
         state.selectedSymptoms.forEach(symId => {
@@ -336,6 +354,7 @@
         const originalBtnContent = btn.innerHTML;
         btn.disabled = true;
         btn.innerHTML = `<span class="loading-spinner"></span> Synthesizing Differential Diagnosis...`;
+        setSymptomStepperStep(3);
 
         try {
             const payload = {
@@ -363,6 +382,8 @@
                 renderResults(data);
                 resultsContainer.scrollIntoView({ behavior: "smooth", block: "start" });
             }
+
+            setSymptomStepperStep(5);
 
             showToast(`Diagnosis generated: Primary ${data.primary_diagnosis.disease} (${data.primary_diagnosis.confidence}%)`, "success");
         } catch (err) {

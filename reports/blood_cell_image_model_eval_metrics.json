@@ -1,0 +1,35 @@
+{
+  "model": "Blood Cell Classification (ResNet18)",
+  "accuracy": 0.8785685564937676,
+  "precision_macro": 0.9018263619900397,
+  "recall_macro": 0.8785420915166747,
+  "f1_macro": 0.8815151996711224,
+  "roc_auc": 0.9540976102040224,
+  "pr_auc": 0.9024372114725339,
+  "per_class": {
+    "Eosinophil": {
+      "precision": 0.9119170984455959,
+      "recall": 0.8475120385232745,
+      "f1": 0.8785357737104825,
+      "support": 623.0
+    },
+    "Lymphocyte": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "support": 620.0
+    },
+    "Monocyte": {
+      "precision": 1.0,
+      "recall": 0.7483870967741936,
+      "f1": 0.8560885608856088,
+      "support": 620.0
+    },
+    "Neutrophil": {
+      "precision": 0.6953883495145631,
+      "recall": 0.9182692307692307,
+      "f1": 0.7914364640883977,
+      "support": 624.0
+    }
+  }
+}

@@ -88,7 +88,10 @@ def validate_chest_radiograph(image_bytes: bytes) -> Tuple[bool, str, str]:
         if lines is not None and len(lines) >= 6:
             ortho_count = 0
             for line in lines:
-                x1, y1, x2, y2 = line[0]
+                pts = line.reshape(-1)
+                if len(pts) < 4:
+                    continue
+                x1, y1, x2, y2 = pts[:4]
                 dx = abs(x2 - x1)
                 dy = abs(y2 - y1)
                 # Check horizontal or vertical within ~3 degrees

@@ -79,5 +79,169 @@
         "support": 334.0
       }
     }
+  },
+  "Brain Tumor MRI": {
+    "model": "Brain Tumor MRI (ResNet18)",
+    "accuracy": 0.955,
+    "precision_macro": 0.9577648729836987,
+    "recall_macro": 0.9550000000000001,
+    "f1_macro": 0.9541965390600429,
+    "roc_auc": 0.9823166666666667,
+    "pr_auc": 0.9635112288230114,
+    "per_class": {
+      "Glioma": {
+        "precision": 0.9941002949852508,
+        "recall": 0.8425,
+        "f1": 0.912043301759134,
+        "support": 400.0
+      },
+      "Meningioma": {
+        "precision": 0.8995433789954338,
+        "recall": 0.985,
+        "f1": 0.9403341288782816,
+        "support": 400.0
+      },
+      "No Tumor": {
+        "precision": 0.9522673031026253,
+        "recall": 0.9975,
+        "f1": 0.9743589743589743,
+        "support": 400.0
+      },
+      "Pituitary": {
+        "precision": 0.9851485148514851,
+        "recall": 0.995,
+        "f1": 0.9900497512437811,
+        "support": 400.0
+      }
+    }
+  },
+  "Skin Cancer (HAM10000)": {
+    "model": "Skin Cancer (HAM10000) (ResNet18)",
+    "accuracy": 0.5384615384615384,
+    "precision_macro": 0.46742166582372097,
+    "recall_macro": 0.7691292850821686,
+    "f1_macro": 0.5094975667785244,
+    "roc_auc": 0.9174193068363491,
+    "pr_auc": 0.765052207342394,
+    "per_class": {
+      "Actinic Keratoses": {
+        "precision": 0.46808510638297873,
+        "recall": 0.6875,
+        "f1": 0.5569620253164557,
+        "support": 32.0
+      },
+      "Basal Cell Carcinoma": {
+        "precision": 0.6060606060606061,
+        "recall": 0.9090909090909091,
+        "f1": 0.7272727272727273,
+        "support": 44.0
+      },
+      "Benign Keratosis": {
+        "precision": 0.4457831325301205,
+        "recall": 0.6491228070175439,
+        "f1": 0.5285714285714286,
+        "support": 114.0
+      },
+      "Dermatofibroma": {
+        "precision": 0.1348314606741573,
+        "recall": 0.9230769230769231,
+        "f1": 0.23529411764705882,
+        "support": 13.0
+      },
+      "Melanoma": {
+        "precision": 0.30067567567567566,
+        "recall": 0.7876106194690266,
+        "f1": 0.4352078239608802,
+        "support": 113.0
+      },
+      "Melanocytic Nevi": {
+        "precision": 0.9965156794425087,
+        "recall": 0.42750373692077726,
+        "f1": 0.5983263598326359,
+        "support": 669.0
+      },
+      "Vascular Lesions": {
+        "precision": 0.32,
+        "recall": 1.0,
+        "f1": 0.48484848484848486,
+        "support": 16.0
+      }
+    }
+  },
+  "Diabetic Retinopathy": {
+    "model": "Diabetic Retinopathy (ResNet18)",
+    "accuracy": 0.10791571753986333,
+    "precision_macro": 0.12559659049925767,
+    "recall_macro": 0.4774139161186703,
+    "f1_macro": 0.17250682173457801,
+    "roc_auc": 0.7190149658107424,
+    "pr_auc": 0.3831762471683873,
+    "per_class": {
+      "No DR": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 2572.0
+      },
+      "Mild": {
+        "precision": 0.07909129154396298,
+        "recall": 0.7800829875518672,
+        "f1": 0.1436210847975554,
+        "support": 241.0
+      },
+      "Moderate": {
+        "precision": 0.20161290322580644,
+        "recall": 0.13863216266173753,
+        "f1": 0.16429353778751368,
+        "support": 541.0
+      },
+      "Severe": {
+        "precision": 0.10101010101010101,
+        "recall": 0.6329113924050633,
+        "f1": 0.17421602787456447,
+        "support": 79.0
+      },
+      "Proliferative DR": {
+        "precision": 0.2462686567164179,
+        "recall": 0.8354430379746836,
+        "f1": 0.3804034582132565,
+        "support": 79.0
+      }
+    }
+  },
+  "Blood Cell Classification": {
+    "model": "Blood Cell Classification (ResNet18)",
+    "accuracy": 0.8785685564937676,
+    "precision_macro": 0.9018263619900397,
+    "recall_macro": 0.8785420915166747,
+    "f1_macro": 0.8815151996711224,
+    "roc_auc": 0.9540976102040224,
+    "pr_auc": 0.9024372114725339,
+    "per_class": {
+      "Eosinophil": {
+        "precision": 0.9119170984455959,
+        "recall": 0.8475120385232745,
+        "f1": 0.8785357737104825,
+        "support": 623.0
+      },
+      "Lymphocyte": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "support": 620.0
+      },
+      "Monocyte": {
+        "precision": 1.0,
+        "recall": 0.7483870967741936,
+        "f1": 0.8560885608856088,
+        "support": 620.0
+      },
+      "Neutrophil": {
+        "precision": 0.6953883495145631,
+        "recall": 0.9182692307692307,
+        "f1": 0.7914364640883977,
+        "support": 624.0
+      }
+    }
   }
 }

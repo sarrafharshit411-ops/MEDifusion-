@@ -120,6 +120,41 @@ async def serve_image_analysis():
     return FileResponse(os.path.join(frontend_dir, "image-analysis.html"))
 
 
+@app.get("/brain-tumor")
+@app.get("/brain-tumor.html")
+async def serve_brain_tumor():
+    """Serve the dedicated Brain Tumor MRI workspace."""
+    return FileResponse(os.path.join(frontend_dir, "brain-tumor.html"))
+
+
+@app.get("/skin-cancer")
+@app.get("/skin-cancer.html")
+async def serve_skin_cancer():
+    """Serve the dedicated Skin Cancer Dermatology workspace."""
+    return FileResponse(os.path.join(frontend_dir, "skin-cancer.html"))
+
+
+@app.get("/retinopathy")
+@app.get("/retinopathy.html")
+async def serve_retinopathy():
+    """Serve the dedicated Diabetic Retinopathy workspace."""
+    return FileResponse(os.path.join(frontend_dir, "retinopathy.html"))
+
+
+@app.get("/blood-cell")
+@app.get("/blood-cell.html")
+async def serve_blood_cell():
+    """Serve the dedicated Blood Cell Cytology workspace."""
+    return FileResponse(os.path.join(frontend_dir, "blood-cell.html"))
+
+
+@app.get("/chest-xray")
+@app.get("/chest-xray.html")
+async def serve_chest_xray():
+    """Serve the dedicated Chest X-Ray workspace."""
+    return FileResponse(os.path.join(frontend_dir, "chest-xray.html"))
+
+
 @app.get("/symptom-analysis")
 @app.get("/symptom-analysis.html")
 async def serve_symptom_analysis():
@@ -139,6 +174,13 @@ async def serve_multimodal():
 async def serve_insights():
     """Serve the model insights & explainability workspace."""
     return FileResponse(os.path.join(frontend_dir, "insights.html"))
+
+
+@app.get("/benchmarks")
+@app.get("/benchmarks.html")
+async def serve_benchmarks():
+    """Serve the empirical model benchmarks & results dashboard."""
+    return FileResponse(os.path.join(frontend_dir, "benchmarks.html"))
 
 
 @app.get("/about")

@@ -81,6 +81,24 @@
             });
         }
 
+        if (loadSampleBtn) {
+            loadSampleBtn.addEventListener("click", async (e) => {
+                e.stopPropagation();
+                try {
+                    MediFusionUI.showToast("info", "Loading sample Chest X-Ray...");
+                    const res = await fetch("/static/images/samples/chest_xray.png");
+                    if (!res.ok) throw new Error("Sample file not found");
+                    const blob = await res.blob();
+                    const file = new File([blob], "sample_chest_xray.png", { type: "image/png" });
+                    await setImageFile(file);
+                    MediFusionUI.showToast("success", "Sample Chest X-Ray attached to multimodal stream!");
+                } catch (err) {
+                    console.error("Failed to load sample:", err);
+                    MediFusionUI.showToast("error", "Could not load sample image.");
+                }
+            });
+        }
+
         if (fileInput) {
             fileInput.addEventListener("change", async (e) => {
                 if (e.target.files && e.target.files[0]) {

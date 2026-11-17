@@ -201,6 +201,23 @@ async def get_image_models_metadata():
     return metadata
 
 
+@router.post("/api/predict/image/chest-xray", response_model=AdvancedImagePredictionResponse)
+async def predict_chest_xray(file: UploadFile = File(...)):
+    """Classify chest radiograph (Normal vs Pneumonia)."""
+    model = registry.image_model
+    if model is None:
+        raise HTTPException(status_code=503, detail="Chest X-Ray model not loaded.")
+
+    try:
+        contents = await file.read()
+        return _run_inference(model, contents, "chest_xray")
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Chest X-Ray prediction error: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.post("/api/predict/image/brain-tumor", response_model=AdvancedImagePredictionResponse)
 async def predict_brain_tumor(file: UploadFile = File(...)):
     """Classify brain tumor type from MRI image."""

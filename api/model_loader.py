@@ -31,7 +31,7 @@ class ModelRegistry:
         self.general_disease_symptoms = None
         self.symptom_label_encoder = None
         self.clinical_label_encoder = None
-        self.device = torch.device("cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self._loaded: Dict[str, bool] = {
             "image": False,
             "symptom": False,
