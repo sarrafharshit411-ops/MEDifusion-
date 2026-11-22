@@ -13,7 +13,7 @@ import torch
 
 
 def load_config(config_path: str = None) -> dict:
-    """Load YAML configuration file."""
+    """Load YAML configuration file with path expansion."""
     if config_path is None:
         # Default: look relative to project root
         project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,6 +21,11 @@ def load_config(config_path: str = None) -> dict:
     
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
+        
+    if "dataset" in config:
+        for k, v in config["dataset"].items():
+            if isinstance(v, str) and v.startswith("~"):
+                config["dataset"][k] = os.path.expanduser(v)
     return config
 
 

@@ -29,7 +29,30 @@
         setupSymptomsDrawer();
         setupVitalsDrawer();
         setupRunButtons();
+        setupXaiTabs();
     });
+
+    function setupXaiTabs() {
+        const btnVision = document.getElementById("tabBtnVisionXai");
+        const btnClinical = document.getElementById("tabBtnClinicalXai");
+        const panelVision = document.getElementById("tabPanelVisionXai");
+        const panelClinical = document.getElementById("tabPanelClinicalXai");
+
+        if (btnVision && btnClinical && panelVision && panelClinical) {
+            btnVision.addEventListener("click", () => {
+                btnVision.classList.add("active");
+                btnClinical.classList.remove("active");
+                panelVision.style.display = "block";
+                panelClinical.style.display = "none";
+            });
+            btnClinical.addEventListener("click", () => {
+                btnClinical.classList.add("active");
+                btnVision.classList.remove("active");
+                panelClinical.style.display = "block";
+                panelVision.style.display = "none";
+            });
+        }
+    }
 
     // ─── 1. Stream Inclusion Checkboxes & Modality Toggles ───
     function setupModalityToggles() {
@@ -412,19 +435,25 @@
             if (emptyStage) emptyStage.style.display = "none";
             if (resultsStage) resultsStage.style.display = "block";
 
-            // 1. Overall Condition & Consensus Pill
+            // 1. Overall Condition & Consensus / Concordance Pill
             const condEl = document.getElementById("mmOverallCondition");
             const badgeEl = document.getElementById("mmConsensusBadge");
 
             if (condEl) condEl.textContent = res.predicted_class.toUpperCase();
 
+            const xaiData = res.xai || {};
+            const concordance = xaiData.modality_concordance || "Concordant Consensus";
+
             if (badgeEl) {
-                if (res.confidence > 0.85) {
-                    badgeEl.className = "badge badge-teal";
-                    badgeEl.textContent = `High Multimodal Consensus (${(res.confidence * 100).toFixed(1)}%)`;
-                } else {
+                if (concordance.includes("Discordant")) {
                     badgeEl.className = "badge badge-warning";
-                    badgeEl.textContent = `Moderate Confidence (${(res.confidence * 100).toFixed(1)}%)`;
+                    badgeEl.innerHTML = `<span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#f59e0b; margin-right:5px;"></span>Discordant Signals Resolved (${(res.confidence * 100).toFixed(1)}%)`;
+                } else if (concordance.includes("Concordant")) {
+                    badgeEl.className = "badge badge-teal";
+                    badgeEl.innerHTML = `<span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:#0d9488; margin-right:5px;"></span>Concordant Consensus (${(res.confidence * 100).toFixed(1)}%)`;
+                } else {
+                    badgeEl.className = "badge";
+                    badgeEl.textContent = `Single Modality (${(res.confidence * 100).toFixed(1)}%)`;
                 }
             }
 
@@ -478,19 +507,11 @@
                 MediFusionUI.animateNumber(scoreNum, 0, fusionPercentage, 900, "%");
             }
 
-            // 4. Modality Contribution Weights
-            const hasImg = checkImg && !!currentImageFile;
-            const hasSym = checkSym && selectedSymptoms.size > 0;
-            const hasCli = checkCli;
-
-            let wImg = hasImg ? 45 : 0;
-            let wSym = hasSym ? 35 : 0;
-            let wCli = hasCli ? 20 : 0;
-            const totalW = (wImg + wSym + wCli) || 100;
-
-            const pImg = Math.round((wImg / totalW) * 100);
-            const pSym = Math.round((wSym / totalW) * 100);
-            const pCli = Math.round((wCli / totalW) * 100);
+            // 4. Real Learned Gating Weights from Fusion Model
+            const gating = res.gating_weights || xaiData.gating_weights || {};
+            const pImg = Math.round((gating.image || 0) * 100);
+            const pSym = Math.round((gating.symptoms || 0) * 100);
+            const pCli = Math.round((gating.clinical || 0) * 100);
 
             const bImg = document.getElementById("contribBarImage");
             const vImg = document.getElementById("contribValImage");
@@ -506,38 +527,139 @@
             // 5. Clinical Decision Narrative Synthesis
             const synthesisEl = document.getElementById("mmSynthesisText");
             if (synthesisEl) {
-                let narrative = `The Gated Cross-Modal Multi-Head Attention engine unified ${[
-                    hasImg ? "thoracic radiographic features" : null,
-                    hasSym ? `${selectedSymptoms.size} clinical symptom markers` : null,
-                    hasCli ? `7 physiological vitals (SpO2: ${currentVitals.oxygen_saturation}%, Temp: ${currentVitals.temperature}°C)` : null
-                ].filter(Boolean).join(", ")}. `;
-
-                if (res.predicted_class === "Pneumonia") {
-                    narrative += `The findings exhibit pronounced alignment with acute pulmonary consolidation and respiratory distress, supported with ${(res.confidence * 100).toFixed(1)}% cross-modal attention agreement.`;
-                } else if (res.predicted_class === "Malaria") {
-                    narrative += `Symptomatic rigors, high paroxysmal fever, and constitutional fatigue indicate a high probability of malarial parasitemia (${(res.confidence * 100).toFixed(1)}% confidence).`;
-                } else if (res.predicted_class === "Typhoid") {
-                    narrative += `Sustained pyrexia, abdominal cramping, and constitutional weakness corroborate classic enteric fever presentation (${(res.confidence * 100).toFixed(1)}% confidence).`;
+                if (xaiData.decision_reasoning) {
+                    synthesisEl.textContent = xaiData.decision_reasoning;
                 } else {
-                    narrative += `Signals indicate normal physiological parameters without significant consolidations or acute systemic indicators.`;
+                    synthesisEl.textContent = `Unified assessment: ${res.predicted_class} (${(res.confidence * 100).toFixed(1)}% confidence) generated through Gated Cross-Modal Multi-Head Attention.`;
                 }
-                synthesisEl.textContent = narrative;
             }
 
             // 6. Unified Probability Bar Chart & Radar Chart
             const probList = res.unified_predictions || res.predictions || [];
             MediFusionCharts.renderProbabilityBar("mmProbabilityChart", probList, true);
+            
+            const hasImg = checkImg && !!currentImageFile;
             MediFusionCharts.renderRadarComparison(
                 "mmRadarChart",
                 ["Vision Opacity", "Febrile State", "Dyspnea / Resp", "Constitutional", "Hemodynamic"],
                 [
-                    hasImg ? 85 : 10,
+                    hasImg ? (res.predicted_class === "Pneumonia" ? 85 : 15) : 5,
                     currentVitals.temperature >= 38 ? 90 : 30,
                     selectedSymptoms.has("rapid_breathing") || currentVitals.oxygen_saturation < 93 ? 88 : 20,
                     selectedSymptoms.has("fatigue") || selectedSymptoms.has("chills") ? 82 : 25,
                     currentVitals.heart_rate > 100 ? 78 : 35
                 ]
             );
+
+            // 7. Render Comprehensive Multimodal Explainability (XAI) Suite
+            const xaiSection = document.getElementById("mmXaiSection");
+            if (xaiSection) {
+                xaiSection.style.display = "block";
+
+                // Concordance Pill & Callout
+                const xaiPill = document.getElementById("mmXaiConcordancePill");
+                const concBanner = document.getElementById("mmConcordanceBanner");
+                const concTitle = document.getElementById("mmConcordanceTitle");
+                const concDesc = document.getElementById("mmConcordanceDesc");
+
+                if (xaiPill) {
+                    xaiPill.textContent = concordance;
+                    xaiPill.className = concordance.includes("Discordant") ? "badge badge-warning" : "badge badge-teal";
+                }
+
+                if (concBanner) {
+                    concBanner.className = concordance.includes("Discordant") 
+                        ? "concordance-banner discordant" 
+                        : (concordance.includes("Single") ? "concordance-banner single" : "concordance-banner concordant");
+                }
+
+                if (concTitle) concTitle.textContent = concordance;
+                if (concDesc) concDesc.textContent = xaiData.concordance_details || "Active diagnostic streams synthesized without conflict.";
+
+                // Modality Marginal Attributions
+                const attr = xaiData.modality_attribution || {};
+                const aImg = Math.round((attr.image || 0) * 100);
+                const aSym = Math.round((attr.symptoms || 0) * 100);
+                const aCli = Math.round((attr.clinical || 0) * 100);
+
+                const attrBImg = document.getElementById("attrBarImage");
+                const attrVImg = document.getElementById("attrValImage");
+                const attrBSym = document.getElementById("attrBarSymptoms");
+                const attrVSym = document.getElementById("attrValSymptoms");
+                const attrBCli = document.getElementById("attrBarClinical");
+                const attrVCli = document.getElementById("attrValClinical");
+
+                if (attrBImg && attrVImg) { attrBImg.style.width = `${aImg}%`; attrVImg.textContent = `${aImg}%`; }
+                if (attrBSym && attrVSym) { attrBSym.style.width = `${aSym}%`; attrVSym.textContent = `${aSym}%`; }
+                if (attrBCli && attrVCli) { attrBCli.style.width = `${aCli}%`; attrVCli.textContent = `${aCli}%`; }
+
+                // 3x3 Cross-Attention Matrix Table
+                if (xaiData.cross_attention && xaiData.cross_attention.matrix) {
+                    const matrix = xaiData.cross_attention.matrix;
+                    for (let r = 0; r < 3; r++) {
+                        for (let c = 0; c < 3; c++) {
+                            const cell = document.getElementById(`attn_${r}_${c}`);
+                            if (cell) {
+                                const val = (matrix[r] && matrix[r][c] !== undefined) ? matrix[r][c] : 0;
+                                cell.textContent = `${(val * 100).toFixed(1)}%`;
+                                const alpha = Math.min(0.85, Math.max(0.06, val * 1.5));
+                                cell.style.background = `rgba(13, 148, 136, ${alpha})`;
+                                cell.style.color = alpha > 0.45 ? "#ffffff" : "var(--text-heading)";
+                            }
+                        }
+                    }
+                }
+
+                // Vision Grad-CAM Display
+                const inputImgEl = document.getElementById("mmXaiInputImg");
+                const overlayImgEl = document.getElementById("mmXaiOverlayImg");
+                const noImgMsg = document.getElementById("mmXaiNoImgMsg");
+                const noOverlayMsg = document.getElementById("mmXaiNoOverlayMsg");
+
+                if (xaiData.gradcam_overlay_base64 && currentImageFile) {
+                    if (inputImgEl) {
+                        inputImgEl.src = URL.createObjectURL(currentImageFile);
+                        inputImgEl.style.display = "block";
+                    }
+                    if (overlayImgEl) {
+                        overlayImgEl.src = `data:image/png;base64,${xaiData.gradcam_overlay_base64}`;
+                        overlayImgEl.style.display = "block";
+                    }
+                    if (noImgMsg) noImgMsg.style.display = "none";
+                    if (noOverlayMsg) noOverlayMsg.style.display = "none";
+                } else {
+                    if (inputImgEl) inputImgEl.style.display = "none";
+                    if (overlayImgEl) overlayImgEl.style.display = "none";
+                    if (noImgMsg) noImgMsg.style.display = "block";
+                    if (noOverlayMsg) noOverlayMsg.style.display = "block";
+                }
+
+                // Tabular SHAP Feature Importance List
+                const shapListEl = document.getElementById("mmShapBarsList");
+                if (shapListEl) {
+                    shapListEl.innerHTML = "";
+                    const shapFeats = xaiData.top_clinical_features || [];
+                    if (shapFeats.length === 0) {
+                        shapListEl.innerHTML = `<div style="font-size:0.8rem; color:var(--text-muted); text-align:center; padding:1.5rem;">No tabular symptom/clinical stream provided.</div>`;
+                    } else {
+                        const maxVal = Math.max(...shapFeats.map(f => f.importance || 0.001));
+                        shapFeats.forEach(f => {
+                            const pct = Math.min(100, Math.round(((f.importance || 0) / maxVal) * 100));
+                            const cleanName = f.feature.replace(/_/g, " ").replace(/\b\w/g, l => l.toUpperCase());
+                            const row = document.createElement("div");
+                            row.className = "shap-bar-row";
+                            row.innerHTML = `
+                                <div class="shap-bar-name" title="${cleanName}">${cleanName}</div>
+                                <div class="shap-bar-track">
+                                    <div class="shap-bar-fill" style="width:${pct}%;"></div>
+                                </div>
+                                <div class="shap-bar-val">+${(f.importance || 0).toFixed(3)}</div>
+                            `;
+                            shapListEl.appendChild(row);
+                        });
+                    }
+                }
+            }
 
             MediFusionUI.showToast("success", `Multimodal assessment synthesized (${res.predicted_class}).`);
         } catch (err) {

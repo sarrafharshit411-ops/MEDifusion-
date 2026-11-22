@@ -71,3 +71,6 @@ desktop.ini
 # Scratch and temp logs
 *.log
 scratch/
+
+# Cache
+models/*.npz

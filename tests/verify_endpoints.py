@@ -26,8 +26,11 @@ data = r.json()
 print('3. POST /api/predict/clinical  ->', r.status_code, f"Predicted: {data['predicted_class']} ({data['confidence']*100:.1f}%)")
 
 # 4. Image
-xray_test_dir = r'C:\Users\vansh\.cache\kagglehub\datasets\paultimothymooney\chest-xray-pneumonia\versions\2\chest_xray\test\PNEUMONIA'
-img_file = [os.path.join(xray_test_dir, f) for f in os.listdir(xray_test_dir) if f.endswith('.jpeg') or f.endswith('.png')][0]
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+img_file = os.path.join(project_root, "frontend", "sample_xray.png")
+if not os.path.exists(img_file):
+    sample_dir = os.path.join(project_root, "frontend", "images", "samples")
+    img_file = os.path.join(sample_dir, "pneumonia_xray.jpeg")
 
 with open(img_file, 'rb') as f:
     r = requests.post(f'{API}/api/predict/image', files={'file': ('xray.jpeg', f, 'image/jpeg')})

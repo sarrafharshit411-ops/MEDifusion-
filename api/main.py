@@ -31,7 +31,9 @@ from api.schemas import (
     ClinicalPredictionResponse, MultimodalPredictionResponse,
     ExplainImageResponse, ExplainClinicalResponse,
     HealthResponse, PredictionResult,
+    ModalityGatingWeights, MultimodalXAI,
 )
+from src.explainability.multimodal_explain import generate_multimodal_xai
 from api.model_loader import registry
 from src.data.xray_dataset import get_eval_transforms
 from src.data.symptom_dataset import (
@@ -350,6 +352,9 @@ async def predict_multimodal(
     try:
         modalities_used = []
         individual_predictions = {}
+        image_bytes = None
+        raw_sym_dict = None
+        raw_clin_dict = None
         
         # Modality mask: [image, symptom, clinical]
         mask = [0.0, 0.0, 0.0]
@@ -365,6 +370,7 @@ async def predict_multimodal(
                         status_code=400,
                         detail=f"Invalid Image in Radiology Stream: {err_msg}"
                     )
+                image_bytes = contents
                 image = Image.open(io.BytesIO(contents)).convert("RGB")
                 transform = get_eval_transforms(224)
                 tensor = transform(image).unsqueeze(0).to(registry.device)
@@ -385,8 +391,8 @@ async def predict_multimodal(
         # --- Symptom embedding ---
         symptom_emb = torch.zeros(1, 15)
         if symptoms is not None and registry._loaded["symptom"]:
-            sym_dict = json.loads(symptoms)
-            sym_vec = preprocess_symptoms(sym_dict)
+            raw_sym_dict = json.loads(symptoms)
+            sym_vec = preprocess_symptoms(raw_sym_dict)
             proba = registry.symptom_model.predict_proba(sym_vec)[0]
             
             symptom_emb = torch.tensor(sym_vec, dtype=torch.float32)
@@ -402,18 +408,19 @@ async def predict_multimodal(
         # --- Clinical embedding ---
         clinical_emb = torch.zeros(1, 22)
         if clinical_data is not None and symptoms is not None and registry._loaded["clinical"]:
-            clin_dict = json.loads(clinical_data)
-            sym_dict = json.loads(symptoms)
-            sym_vec = preprocess_symptoms(sym_dict)
+            raw_clin_dict = json.loads(clinical_data)
+            if raw_sym_dict is None:
+                raw_sym_dict = json.loads(symptoms)
+            sym_vec = preprocess_symptoms(raw_sym_dict)
             
             clin_values = np.array([[
-                clin_dict.get("age", 45),
-                clin_dict.get("temperature", 37.0),
-                clin_dict.get("heart_rate", 75),
-                clin_dict.get("bp_systolic", 120),
-                clin_dict.get("bp_diastolic", 80),
-                clin_dict.get("respiratory_rate", 16),
-                clin_dict.get("oxygen_saturation", 98),
+                raw_clin_dict.get("age", 45),
+                raw_clin_dict.get("temperature", 37.0),
+                raw_clin_dict.get("heart_rate", 75),
+                raw_clin_dict.get("bp_systolic", 120),
+                raw_clin_dict.get("bp_diastolic", 80),
+                raw_clin_dict.get("respiratory_rate", 16),
+                raw_clin_dict.get("oxygen_saturation", 98),
             ]], dtype=np.float32)
             
             X = np.hstack([sym_vec, clin_values])
@@ -433,16 +440,25 @@ async def predict_multimodal(
         if not any(m > 0 for m in mask):
             raise HTTPException(status_code=400, detail="At least one modality must be provided")
         
-        # Run fusion
+        # Run fusion with dynamic gating & attention capture
         mask_tensor = torch.tensor([mask], dtype=torch.float32).to(registry.device)
         
         with torch.no_grad():
-            logits = registry.fusion_model(
+            f_out = registry.fusion_model(
                 image_emb.to(registry.device),
                 symptom_emb.to(registry.device),
                 clinical_emb.to(registry.device),
                 mask_tensor,
+                return_attention=True,
             )
+            if isinstance(f_out, tuple):
+                logits, norm_gating, raw_gates, attn_weights = f_out
+            else:
+                logits = f_out
+                norm_gating = mask_tensor / mask_tensor.sum(dim=1, keepdim=True).clamp(min=1e-8)
+                raw_gates = norm_gating
+                attn_weights = torch.eye(3, device=registry.device).unsqueeze(0)
+                
             probs = F.softmax(logits, dim=1)[0]
         
         predictions = [
@@ -450,12 +466,43 @@ async def predict_multimodal(
             for i, cls in enumerate(UNIFIED_CLASSES)
         ]
         pred_idx = probs.argmax().item()
+        winning_class = UNIFIED_CLASSES[pred_idx]
+        winning_conf = float(probs[pred_idx])
+        
+        # Generate Multimodal Explainability (XAI)
+        xai_dict = generate_multimodal_xai(
+            fusion_model=registry.fusion_model,
+            image_emb=image_emb,
+            symptom_emb=symptom_emb,
+            clinical_emb=clinical_emb,
+            mask=mask,
+            gating_weights=norm_gating,
+            raw_gates=raw_gates,
+            attn_weights=attn_weights,
+            winning_class=winning_class,
+            winning_prob=winning_conf,
+            winning_idx=pred_idx,
+            individual_preds=individual_predictions,
+            device=registry.device,
+            image_bytes=image_bytes,
+            image_model=registry.image_model if registry._loaded["image"] else None,
+            clinical_model=registry.clinical_model if registry._loaded["clinical"] else None,
+            clinical_scaler=registry.clinical_scaler if registry._loaded["clinical"] else None,
+            raw_symptoms=raw_sym_dict,
+            raw_clinical_data=raw_clin_dict,
+        )
+        
+        gating_obj = ModalityGatingWeights(**xai_dict["gating_weights"])
+        xai_obj = MultimodalXAI(**xai_dict)
         
         return MultimodalPredictionResponse(
             unified_predictions=predictions,
-            predicted_class=UNIFIED_CLASSES[pred_idx],
-            confidence=float(probs[pred_idx]),
+            predicted_class=winning_class,
+            confidence=winning_conf,
             modalities_used=modalities_used,
+            fusion_model="GatedAttentionFusion",
+            gating_weights=gating_obj,
+            xai=xai_obj,
             individual_predictions=individual_predictions,
         )
     except HTTPException:

@@ -198,6 +198,129 @@
         .contrib-bar-image { background: var(--teal); }
         .contrib-bar-symptoms { background: #7c3aed; }
         .contrib-bar-clinical { background: var(--cyan); }
+
+        /* ─── XAI & Multimodal Reasoning Suite ─── */
+        .xai-section-card {
+            background: #ffffff;
+            border: 1px solid var(--border-base);
+            border-radius: var(--radius-lg);
+            padding: 1.75rem 2rem;
+            margin-top: 2rem;
+            box-shadow: var(--shadow-xs);
+        }
+        .xai-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        .concordance-banner {
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.85rem;
+            font-size: 0.88rem;
+            line-height: 1.6;
+        }
+        .concordance-banner.concordant {
+            background: var(--teal-light);
+            border: 1px solid rgba(13, 148, 136, 0.35);
+            color: #0f766e;
+        }
+        .concordance-banner.discordant {
+            background: #fef3c7;
+            border: 1px solid rgba(245, 158, 11, 0.4);
+            color: #92400e;
+        }
+        .concordance-banner.single {
+            background: var(--bg-surface-subtle);
+            border: 1px solid var(--border-base);
+            color: var(--text-secondary);
+        }
+        .attn-matrix-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 5px;
+            font-size: 0.78rem;
+        }
+        .attn-matrix-table th {
+            font-weight: 700;
+            color: var(--text-secondary);
+            padding: 0.4rem 0.5rem;
+            text-align: center;
+        }
+        .attn-matrix-table td {
+            text-align: center;
+            padding: 0.65rem 0.5rem;
+            border-radius: var(--radius-sm);
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 750;
+            transition: all var(--transition-fast);
+        }
+        .xai-tab-btns {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-base);
+            padding-bottom: 0.6rem;
+        }
+        .xai-tab-btn {
+            padding: 0.45rem 1rem;
+            border-radius: var(--radius-full);
+            font-size: 0.8rem;
+            font-weight: 700;
+            border: 1px solid var(--border-base);
+            background: #ffffff;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all var(--transition-fast);
+        }
+        .xai-tab-btn.active {
+            background: var(--primary);
+            color: #ffffff;
+            border-color: var(--primary);
+        }
+        .shap-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.65rem;
+            font-size: 0.82rem;
+        }
+        .shap-bar-name {
+            width: 160px;
+            text-align: right;
+            font-weight: 650;
+            color: var(--text-secondary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .shap-bar-track {
+            flex: 1;
+            height: 12px;
+            background: var(--border-base);
+            border-radius: 99px;
+            overflow: hidden;
+            position: relative;
+        }
+        .shap-bar-fill {
+            height: 100%;
+            border-radius: 99px;
+            background: var(--primary);
+            transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .shap-bar-val {
+            width: 55px;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 750;
+            font-size: 0.76rem;
+            color: var(--text-heading);
+        }
     </style>
 </head>
 <body>
@@ -564,6 +687,160 @@
                             <canvas id="mmRadarChart"></canvas>
                         </div>
                     </div>
+                </div>
+            </div>
+
+            <!-- ─── Explainable AI (XAI) & Multimodal Reasoning Suite ─── -->
+            <div class="xai-section-card" id="mmXaiSection" style="display:none;">
+                <div class="xai-header">
+                    <div>
+                        <div style="display:inline-flex; align-items:center; gap:0.4rem; padding:0.18rem 0.6rem; border-radius:var(--radius-full); font-size:0.7rem; font-weight:750; text-transform:uppercase; letter-spacing:0.06em; background:var(--primary-light); border:1px solid rgba(2,132,199,0.25); color:var(--primary); margin-bottom:0.35rem;">
+                            <span>Multimodal XAI & Cross-Attention Telemetry</span>
+                        </div>
+                        <h2 style="font-size:1.35rem; font-weight:850; color:var(--text-heading); letter-spacing:-0.02em;">Explainable AI: Modality Contributions & Decision Drivers</h2>
+                        <p style="font-size:0.84rem; color:var(--text-muted); margin-top:0.2rem;">
+                            Empirical explanation of learned attention gating, cross-modal influence, and individual pathway feature drivers (Grad-CAM & SHAP).
+                        </p>
+                    </div>
+                    <span id="mmXaiConcordancePill" class="badge badge-teal" style="font-size:0.8rem; padding:0.4rem 0.85rem;">Concordant Consensus</span>
+                </div>
+
+                <!-- Modality Concordance / Discordance Callout -->
+                <div id="mmConcordanceBanner" class="concordance-banner concordant">
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0; margin-top:2px;">
+                        <circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/>
+                    </svg>
+                    <div>
+                        <div style="font-weight:750; margin-bottom:0.2rem;" id="mmConcordanceTitle">Modality Signal Alignment</div>
+                        <div style="font-size:0.84rem;" id="mmConcordanceDesc">Active diagnostic streams exhibit consistent evidence.</div>
+                    </div>
+                </div>
+
+                <!-- Grid: Cross-Modal Attention Heatmap & Marginal Attribution -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem; margin-bottom:1.75rem;">
+                    <!-- 1. 3x3 Cross-Modal Attention Matrix Heatmap -->
+                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-base); border-radius:var(--radius-md); padding:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.85rem;">
+                            <h4 style="font-size:0.9rem; font-weight:750; color:var(--text-heading);">Inter-Modality Cross-Attention Flow</h4>
+                            <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">2-Head Scaled Dot-Product</span>
+                        </div>
+                        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem;">
+                            Normalized attention weights showing how each modality representation queries and attends to the other active streams.
+                        </p>
+                        <div style="overflow-x:auto;">
+                            <table class="attn-matrix-table" id="mmAttnMatrixTable">
+                                <thead>
+                                    <tr>
+                                        <th style="text-align:left; font-size:0.75rem;">Query \ Key</th>
+                                        <th>Vision</th>
+                                        <th>Symptoms</th>
+                                        <th>Vitals</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td style="text-align:left; font-weight:700;">Vision</td>
+                                        <td id="attn_0_0">-</td><td id="attn_0_1">-</td><td id="attn_0_2">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align:left; font-weight:700;">Symptoms</td>
+                                        <td id="attn_1_0">-</td><td id="attn_1_1">-</td><td id="attn_1_2">-</td>
+                                    </tr>
+                                    <tr>
+                                        <td style="text-align:left; font-weight:700;">Vitals</td>
+                                        <td id="attn_2_0">-</td><td id="attn_2_1">-</td><td id="attn_2_2">-</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- 2. Modality Marginal Attribution (Shapley-style Impact) -->
+                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-base); border-radius:var(--radius-md); padding:1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.85rem;">
+                            <h4 style="font-size:0.9rem; font-weight:750; color:var(--text-heading);">Marginal Modality Attribution (Impact)</h4>
+                            <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">Leave-One-Out Shapley</span>
+                        </div>
+                        <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:0.75rem;">
+                            Empirical drop in confidence when each modality is omitted, isolating the unique contribution to the final class decision.
+                        </p>
+
+                        <div style="margin-top:1rem;">
+                            <div class="contrib-row">
+                                <div class="contrib-meta">
+                                    <span>Radiology Vision Stream</span>
+                                    <span id="attrValImage" style="color:var(--teal); font-family:'JetBrains Mono', monospace;">0%</span>
+                                </div>
+                                <div class="contrib-bar-track">
+                                    <div class="contrib-bar-fill contrib-bar-image" id="attrBarImage" style="width:0%;"></div>
+                                </div>
+                            </div>
+                            <div class="contrib-row">
+                                <div class="contrib-meta">
+                                    <span>Symptom Entropy Stream</span>
+                                    <span id="attrValSymptoms" style="color:#7c3aed; font-family:'JetBrains Mono', monospace;">0%</span>
+                                </div>
+                                <div class="contrib-bar-track">
+                                    <div class="contrib-bar-fill contrib-bar-symptoms" id="attrBarSymptoms" style="width:0%;"></div>
+                                </div>
+                            </div>
+                            <div class="contrib-row" style="margin-bottom:0;">
+                                <div class="contrib-meta">
+                                    <span>Clinical Vitals Stream</span>
+                                    <span id="attrValClinical" style="color:var(--cyan); font-family:'JetBrains Mono', monospace;">0%</span>
+                                </div>
+                                <div class="contrib-bar-track">
+                                    <div class="contrib-bar-fill contrib-bar-clinical" id="attrBarClinical" style="width:0%;"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deep-Dive Pathway Tabs: Grad-CAM (Vision) vs SHAP (Tabular) -->
+                <div style="margin-top:1.5rem;">
+                    <div class="xai-tab-btns">
+                        <button type="button" class="xai-tab-btn active" id="tabBtnVisionXai">Radiology Spatial Focus (Grad-CAM)</button>
+                        <button type="button" class="xai-tab-btn" id="tabBtnClinicalXai">Biomarkers & Vital Drivers (SHAP)</button>
+                    </div>
+
+                    <!-- Panel 1: Vision Grad-CAM -->
+                    <div id="tabPanelVisionXai" style="display:block;">
+                        <div id="mmGradCamContainer" style="display:grid; grid-template-columns: 1fr 1fr; gap:1.25rem; align-items:center;">
+                            <div style="text-align:center;">
+                                <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">Attached Radiograph</div>
+                                <div style="max-height:240px; border-radius:var(--radius-md); overflow:hidden; background:#0f172a; display:flex; align-items:center; justify-content:center;">
+                                    <img id="mmXaiInputImg" src="" alt="Radiograph Input" style="max-height:240px; width:auto; object-fit:contain; display:none;">
+                                    <span id="mmXaiNoImgMsg" style="color:var(--text-muted); font-size:0.8rem; padding:2rem;">No radiograph stream attached in this assessment</span>
+                                </div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:0.75rem; font-weight:700; color:var(--text-muted); text-transform:uppercase; margin-bottom:0.4rem;">Grad-CAM Pulmonary Activation Heatmap</div>
+                                <div style="max-height:240px; border-radius:var(--radius-md); overflow:hidden; background:#0f172a; display:flex; align-items:center; justify-content:center;">
+                                    <img id="mmXaiOverlayImg" src="" alt="Grad-CAM Overlay" style="max-height:240px; width:auto; object-fit:contain; display:none;">
+                                    <span id="mmXaiNoOverlayMsg" style="color:var(--text-muted); font-size:0.8rem; padding:2rem;">Awaiting radiological Grad-CAM computation</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Panel 2: Tabular SHAP -->
+                    <div id="tabPanelClinicalXai" style="display:none;">
+                        <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-base); border-radius:var(--radius-md); padding:1.25rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                                <h4 style="font-size:0.88rem; font-weight:750; color:var(--text-heading);">SHAP Clinical Feature Importance Drivers</h4>
+                                <span style="font-size:0.72rem; color:var(--text-muted); font-weight:600;">TreeExplainer Attributions</span>
+                            </div>
+                            <div id="mmShapBarsList">
+                                <!-- Populated dynamically by JS -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Academic Disclosure Banner -->
+                <div style="margin-top:1.5rem; padding:0.85rem 1.15rem; background:#f8fafc; border:1px solid var(--border-subtle); border-radius:var(--radius-sm); font-size:0.76rem; color:var(--text-muted); line-height:1.5;">
+                    <strong>Academic Data Limitation Notice:</strong> Imaging and clinical datasets originate from independent non-patient-paired repositories. Clinical telemetry incorporates synthetic parameters. Modality gating and attention weights demonstrate architectural feasibility for multimodal fusion under clinical decision-support research.
                 </div>
             </div>
         </div>

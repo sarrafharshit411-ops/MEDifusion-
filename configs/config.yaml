@@ -2,13 +2,13 @@
 # Central configuration for all components
 
 dataset:
-  xray_path: "C:/Users/dhruv/.cache/kagglehub/datasets/paultimothymooney/chest-xray-pneumonia/versions/2/chest_xray"
-  symptom_path: ""
+  xray_path: "~/.cache/kagglehub/datasets/paultimothymooney/chest-xray-pneumonia/versions/2/chest_xray"
+  symptom_path: "~/.cache/kagglehub/datasets/miltonmacgyver/symptom-based-disease-prediction-dataset/versions/1/disease_prediction.csv"
   # New image dataset paths (auto-downloaded via kagglehub if not present)
-  brain_tumor_path: "C:/Users/dhruv/.cache/kagglehub/datasets/masoudnickparvar/brain-tumor-mri-dataset/versions/2"
-  skin_cancer_path: "C:/Users/dhruv/.cache/kagglehub/datasets/kmader/skin-cancer-mnist-ham10000/versions/2"
-  retinopathy_path: "C:/Users/dhruv/.cache/kagglehub/datasets/amanneo/diabetic-retinopathy-resized-arranged/versions/1"
-  blood_cell_path: "C:/Users/dhruv/.cache/kagglehub/datasets/paultimothymooney/blood-cells/versions/6/dataset2-master/dataset2-master"
+  brain_tumor_path: "~/.cache/kagglehub/datasets/masoudnickparvar/brain-tumor-mri-dataset/versions/2"
+  skin_cancer_path: "~/.cache/kagglehub/datasets/kmader/skin-cancer-mnist-ham10000/versions/2"
+  retinopathy_path: "~/.cache/kagglehub/datasets/amanneo/diabetic-retinopathy-resized-arranged/versions/1"
+  blood_cell_path: "~/.cache/kagglehub/datasets/paultimothymooney/blood-cells/versions/6/dataset2-master/dataset2-master"
   
 training:
   seed: 42

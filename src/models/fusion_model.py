@@ -84,17 +84,21 @@ class ConcatFusion(nn.Module):
         symptom_emb: torch.Tensor,
         clinical_emb: torch.Tensor,
         modality_mask: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
+        return_attention: bool = False,
+    ):
         """
         Args:
             image_emb: (batch, 512)
             symptom_emb: (batch, 15)
             clinical_emb: (batch, 22)
             modality_mask: (batch, 3) binary mask [image_present, symptom_present, clinical_present]
+            return_attention: whether to return gating/attribution weights
             
         Returns:
             logits: (batch, num_classes)
+            If return_attention is True, returns (logits, normalized_weights, raw_gates, attention_matrix)
         """
+        batch_size = image_emb.size(0)
         if modality_mask is not None:
             # Apply modality masks
             image_emb = image_emb * modality_mask[:, 0:1]
@@ -103,6 +107,17 @@ class ConcatFusion(nn.Module):
         
         fused = torch.cat([image_emb, symptom_emb, clinical_emb], dim=1)
         logits = self.classifier(fused)
+        
+        if return_attention:
+            if modality_mask is not None:
+                mask_sum = modality_mask.sum(dim=1, keepdim=True).clamp(min=1e-8)
+                norm_weights = modality_mask / mask_sum
+            else:
+                norm_weights = torch.ones(batch_size, 3, device=image_emb.device) / 3.0
+            raw_gates = norm_weights
+            eye_attn = torch.eye(3, device=image_emb.device).unsqueeze(0).expand(batch_size, -1, -1)
+            return logits, norm_weights, raw_gates, eye_attn
+            
         return logits
 
 
@@ -181,16 +196,19 @@ class GatedAttentionFusion(nn.Module):
         symptom_emb: torch.Tensor,
         clinical_emb: torch.Tensor,
         modality_mask: Optional[torch.Tensor] = None,
-    ) -> torch.Tensor:
+        return_attention: bool = False,
+    ):
         """
         Args:
             image_emb: (batch, 512)
             symptom_emb: (batch, 15)
             clinical_emb: (batch, 22)
             modality_mask: (batch, 3) binary mask
+            return_attention: whether to return attention/gating weights
             
         Returns:
             logits: (batch, num_classes)
+            If return_attention is True, returns (logits, normalized_gating_weights, raw_gates, attn_weights)
         """
         batch_size = image_emb.size(0)
         
@@ -199,10 +217,25 @@ class GatedAttentionFusion(nn.Module):
         sym_proj = self.symptom_proj(symptom_emb)   # (batch, proj_dim)
         cli_proj = self.clinical_proj(clinical_emb) # (batch, proj_dim)
         
-        # Apply gating
-        img_gated = img_proj * self.image_gate(img_proj)
-        sym_gated = sym_proj * self.symptom_gate(sym_proj)
-        cli_gated = cli_proj * self.clinical_gate(cli_proj)
+        # Compute raw gating scalars
+        g_img = self.image_gate(img_proj)   # (batch, 1)
+        g_sym = self.symptom_gate(sym_proj) # (batch, 1)
+        g_cli = self.clinical_gate(cli_proj) # (batch, 1)
+        raw_gates = torch.cat([g_img, g_sym, g_cli], dim=1) # (batch, 3)
+        
+        # Apply modality masks to gates
+        if modality_mask is not None:
+            masked_gates = raw_gates * modality_mask
+        else:
+            masked_gates = raw_gates
+            
+        gate_sums = masked_gates.sum(dim=1, keepdim=True).clamp(min=1e-8)
+        normalized_gating_weights = masked_gates / gate_sums  # (batch, 3) relative importance summing to 1.0
+        
+        # Apply gating to tokens
+        img_gated = img_proj * g_img
+        sym_gated = sym_proj * g_sym
+        cli_gated = cli_proj * g_cli
         
         # Apply modality masks
         if modality_mask is not None:
@@ -218,11 +251,16 @@ class GatedAttentionFusion(nn.Module):
         key_padding_mask = None
         if modality_mask is not None:
             key_padding_mask = (modality_mask == 0)  # (batch, 3)
+            all_masked = key_padding_mask.all(dim=1)
+            if all_masked.any():
+                key_padding_mask[all_masked] = False
         
         # Cross-modal attention
-        attn_out, _ = self.cross_attention(
+        attn_out, attn_weights = self.cross_attention(
             tokens, tokens, tokens,
             key_padding_mask=key_padding_mask,
+            need_weights=True,
+            average_attn_weights=True,
         )
         attn_out = self.attn_norm(attn_out + tokens)  # Residual connection
         
@@ -234,6 +272,9 @@ class GatedAttentionFusion(nn.Module):
             pooled = attn_out.mean(dim=1)  # (batch, proj_dim)
         
         logits = self.classifier(pooled)
+        
+        if return_attention:
+            return logits, normalized_gating_weights, raw_gates, attn_weights
         return logits
 
 

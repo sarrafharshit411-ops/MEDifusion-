@@ -1,10 +1,10 @@
 {
   "concat": {
-    "best_val_accuracy": 0.972809667673716,
-    "model_path": "C:\\Users\\vansh\\OneDrive - BENNETT UNIVERSITY\\Desktop\\imd project\\models\\fusion_concat.pth"
+    "best_val_accuracy": 0.9324074074074075,
+    "model_path": "/Users/harshit/Desktop/untitled folder/MediFusionAi/models/fusion_concat.pth"
   },
   "gated": {
-    "best_val_accuracy": 0.9707955689828801,
-    "model_path": "C:\\Users\\vansh\\OneDrive - BENNETT UNIVERSITY\\Desktop\\imd project\\models\\fusion_gated.pth"
+    "best_val_accuracy": 0.937962962962963,
+    "model_path": "/Users/harshit/Desktop/untitled folder/MediFusionAi/models/fusion_gated.pth"
   }
 }

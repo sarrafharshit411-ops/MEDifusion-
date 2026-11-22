@@ -2,7 +2,7 @@
 MediFusion AI - Pydantic Request/Response Schemas
 """
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Any
 from pydantic import BaseModel, Field
 
 
@@ -87,6 +87,45 @@ class ClinicalPredictionResponse(DisclaimerMixin):
     synthetic_data_note: str = "Clinical features include synthetic data for demonstration purposes"
 
 
+class ModalityGatingWeights(BaseModel):
+    """Dynamic normalized gating weights per modality."""
+    image: float = 0.0
+    symptoms: float = 0.0
+    clinical: float = 0.0
+
+
+class ModalityAttribution(BaseModel):
+    """Marginal contribution of each modality to the winning class score."""
+    image: float = 0.0
+    symptoms: float = 0.0
+    clinical: float = 0.0
+
+
+class CrossAttentionMatrix(BaseModel):
+    """3x3 Cross-modal attention weights between modalities."""
+    matrix: List[List[float]]
+    modality_labels: List[str] = ["Radiology (Vision)", "Symptom Stream", "Clinical Vitals"]
+
+
+class MultimodalXAI(BaseModel):
+    """Comprehensive Explainable AI payload for multimodal synthesis."""
+    modality_concordance: str
+    concordance_details: str
+    decision_reasoning: str
+    gating_weights: ModalityGatingWeights
+    raw_gating_scores: Dict[str, float]
+    modality_attribution: ModalityAttribution
+    cross_attention: CrossAttentionMatrix
+    gradcam_overlay_base64: Optional[str] = None
+    gradcam_heatmap_base64: Optional[str] = None
+    top_symptom_features: Optional[List[Dict[str, Any]]] = None
+    top_clinical_features: Optional[List[Dict[str, Any]]] = None
+    limitations: str = (
+        "Clinical Prototype Limitations: Imaging and symptom datasets originate from independent "
+        "non-patient-paired cohorts. Physiological vitals include synthetic parameters for architectural demonstration."
+    )
+
+
 class MultimodalPredictionResponse(DisclaimerMixin):
     """Response for multimodal prediction."""
     unified_predictions: List[PredictionResult]
@@ -94,10 +133,12 @@ class MultimodalPredictionResponse(DisclaimerMixin):
     confidence: float
     modalities_used: List[str]
     fusion_model: str = "GatedAttentionFusion"
+    gating_weights: Optional[ModalityGatingWeights] = None
+    xai: Optional[MultimodalXAI] = None
     individual_predictions: Optional[Dict[str, List[PredictionResult]]] = None
     data_note: str = (
         "The initial datasets are NOT patient-paired multimodal data. "
-        "This fusion demonstrates the architecture for combining modalities."
+        "This fusion demonstrates the architecture for combining modalities with cross-modal attention."
     )
 
 

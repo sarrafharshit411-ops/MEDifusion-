@@ -97,7 +97,52 @@ MediFusion AI is built on a modular tri-stream deep learning architecture that f
 
 ---
 
-## 💻 Tech Stack
+## 🔬 Multimodal Fusion Audit & Explainable AI (XAI) Architecture
+
+### 1. Root Cause Analysis: Conflicting Signals vs. Artificial Shortcuts
+During rigorous pipeline auditing, a critical prediction failure was diagnosed where individual single-modality models produced conflicting predictions:
+- **Radiology:** NORMAL (83%)
+- **Symptoms:** Malaria (99%)
+- **Clinical Vitals:** Malaria (96%)
+
+Yet the fusion model predicted **Pneumonia with an artificial 99% confidence score** and hardcoded gating weights (`45% / 35% / 20%`).
+
+#### Root Causes Identified:
+1. **Mask-Memorization Shortcut in Data Generation:**  
+   In the legacy fusion training routine (`train_fusion.py`), the all-active mask `[1, 1, 1]` was generated *exclusively* for Pneumonia samples (Normal used `[1, 0, 0]`, while Malaria and Typhoid used `[0, 1, 1]`). The fusion network bypassed the underlying representations entirely, memorizing the binary mask pattern: `image_present + symptoms_present == Pneumonia` with 100% correlation.
+2. **Hardcoded Frontend Gating Weights:**  
+   `frontend/js/multimodal.js` previously contained hardcoded gating values (`wImg = 45%, wSym = 35%, wCli = 20%`) rather than extracting learned gating activations from the model.
+3. **Clinical Feature Scaling Mismatch:**  
+   The training pipeline passed raw unscaled vitals (e.g., systolic BP ~120, HR ~80) to the clinical embedding branch, whereas inference in `api/main.py` passed `StandardScaler`-transformed vitals (mean ~0, std ~1), causing severe distribution shift in the gating network.
+
+### 2. Architectural & Mathematical Fixes
+1. **Dynamic Gating Normalization:**
+   The fusion network applies a modality-wise gating layer with sigmoid activation, followed by masked dynamic normalization:
+   $$\mathbf{g} = \sigma(W_g [\mathbf{h}_{\text{img}}, \mathbf{h}_{\text{sym}}, \mathbf{h}_{\text{cli}}] + \mathbf{b}_g) \odot \mathbf{m}$$
+   $$\tilde{g}_i = \frac{g_i}{\sum_{j=1}^M g_j + \epsilon}$$
+   where $\mathbf{m} \in \{0, 1\}^3$ is the availability mask, ensuring weights are mathematically valid and sum to $1.0$ across active modalities.
+2. **Cross-Modal Attention Extraction:**
+   A multi-head attention mechanism ($d_{\text{model}}=64, \text{heads}=4$) computes inter-modality attention flow:
+   $$\text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V$$
+   The resulting $3 \times 3$ attention weight matrix is extracted and exposed via the API to visualize cross-modal information transfer.
+3. **Cross-Modality Data Synthesis:**
+   Retrained `GatedAttentionFusion` on cross-modality pairings (e.g., normal radiographs paired with malaria/typhoid systemic vitals, matching clinical reality where non-respiratory infections present with clear lungs).
+
+### 3. Integrated Multimodal Explainability (XAI) Suite
+The platform features an end-to-end Explainable AI suite providing transparency at both the fusion and pathway levels:
+- **Modality Concordance Analysis:** Automatically evaluates agreement across independent streams, classifying the diagnostic context as:
+  - `Concordant Consensus`: All active streams mutually corroborate the diagnostic hypothesis.
+  - `Discordant Signals Resolved`: Conflicting modality indicators (e.g., clear pulmonary fields vs. acute systemic febrile markers) are explicitly highlighted with automated clinical resolution reasoning.
+  - `Single-Modality Assessment`: Graceful single-stream inference with modality masking.
+- **Marginal Modality Attribution (Leave-One-Out Shapley Impact):** Dynamically measures the marginal contribution of each modality to the winning class probability:
+  $$\Delta_i = \max(0, P_{\text{full}}(c^*) - P_{-i}(c^*))$$
+- **Interactive $3 \times 3$ Cross-Attention Heatmap:** Real-time visual matrix detailing how the Vision, Symptom, and Clinical vitals streams attend to one another.
+- **Dual-Pathway Deep Dive:**
+  - *Radiology Pathway:* Grad-CAM heatmaps highlighting pulmonary opacities and consolidations.
+  - *Biomarker Pathway:* SHAP feature importance rankings quantifying the impact of individual symptoms and vitals.
+- **Clinical Prototype Disclosures:** Complete transparency regarding non-patient-paired training cohorts and synthetic physiological vitals.
+
+---
 
 | Domain | Technology | Details |
 |--------|-----------|---------|
