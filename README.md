@@ -208,8 +208,8 @@ The platform features an end-to-end Explainable AI suite providing transparency 
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/dhruvashish/MediFusionAi.git
-cd MediFusionAi
+git clone https://github.com/sarrafharshit411-ops/MEDifusion-.git
+cd MEDifusion-
 ```
 
 ### 2. Set Up Environment & Install Dependencies
@@ -285,6 +285,52 @@ The comprehensive university-level academic project report and architectural dia
 
 ---
 
+## 👨‍💻 My Contribution — Harshit Raj
+
+### Contribution Summary Card
+
+| Attribute | Details |
+| :--- | :--- |
+| **Contributor** | **Harshit Raj** |
+| **Role** | **Multimodal AI & Fusion Integration** |
+| **Focus Areas** | Multimodal Deep Learning, Gated Cross-Modal Attention, Feature Representation, Cross-Modal Explainability (XAI) |
+| **Core Modules & Files** | [`src/models/fusion_model.py`](./src/models/fusion_model.py), [`src/training/train_fusion.py`](./src/training/train_fusion.py), [`src/explainability/multimodal_explain.py`](./src/explainability/multimodal_explain.py), [`api/schemas.py`](./api/schemas.py), [`api/main.py`](./api/main.py), [`frontend/multimodal.html`](./frontend/multimodal.html), [`frontend/js/multimodal.js`](./frontend/js/multimodal.js), [`tests/test_audit_fusion.py`](./tests/test_audit_fusion.py) |
+| **Primary Methodologies** | Learnable Gating Networks ($\sigma(W_g \mathbf{h} + \mathbf{b}) \odot \mathbf{m}$), Multi-Head Cross-Modal Attention ($4$ heads, $d_{\text{model}}=64$), Shapley Marginal Attributions, Grad-CAM, TreeSHAP |
+
+---
+
+### Key Technical Contributions & Deliverables
+
+#### 1. Multimodal AI & Unified Fusion Pipeline Architecture
+- **Unified Pipeline Design:** Designed, audited, and integrated the end-to-end multimodal fusion pipeline in [`api/main.py`](./api/main.py) and [`src/models/fusion_model.py`](./src/models/fusion_model.py), unifying heterogeneous clinical data streams:
+  - **Vision Pathway:** 512-dimensional convolutional feature embeddings extracted from ResNet-18 chest radiographs.
+  - **Symptom Pathway:** 15-dimensional differential symptom indicator representations.
+  - **Clinical Telemetry Pathway:** 22-dimensional structured physiological vitals (blood pressure, heart rate, oxygen saturation, temperature, respiratory rate).
+- **Dynamic Modality Availability Masking:** Integrated an adaptive binary availability mask $\mathbf{m} \in \{0, 1\}^3$ allowing the system to perform robust inference across incomplete or single-modality patient inputs (radiograph-only, symptoms-only, or full tri-modality telemetry) without pipeline failure or artificial data imputation.
+
+#### 2. Gated Attention Fusion & Modality Weighting
+- **Dynamic Gating Network Implementation:** Developed and integrated the `GatedAttentionFusion` network in [`src/models/fusion_model.py`](./src/models/fusion_model.py) featuring modality-specific linear projections and dynamic normalization:
+  $$\mathbf{g} = \sigma(W_g [\mathbf{h}_{\text{img}}, \mathbf{h}_{\text{sym}}, \mathbf{h}_{\text{cli}}] + \mathbf{b}_g) \odot \mathbf{m}, \quad \tilde{g}_i = \frac{g_i}{\sum_{j=1}^M g_j + \epsilon}$$
+  ensuring all gating weights are dynamically inferred, mathematically valid, and sum to 1.0 across active modalities rather than relying on arbitrary fixed constants.
+- **Resolution of Conflicting Signals Anomaly:** Investigated and resolved the critical architectural flaw where conflicting single-modality outputs (Normal radiograph 83% vs. Malaria symptoms 99% / vitals 96%) previously triggered an erroneous 99% Pneumonia prediction. Overhauled synthetic training generation in [`src/training/train_fusion.py`](./src/training/train_fusion.py) to eliminate mask-shortcut memorization and enforce realistic cross-modality pairings (e.g., clear pulmonary fields paired with acute systemic febrile infections).
+
+#### 3. Cross-Modal Interaction & Shared Feature Representation
+- **Cross-Modal Multi-Head Attention:** Built an inter-modality multi-head attention block ($4$ heads, $d_{\text{model}}=64$) capturing rich cross-stream dependencies and contextual interactions between radiographic visual features and tabular clinical parameters.
+- **Feature Scaling & Distribution Alignment:** Diagnosed and corrected a severe feature scaling mismatch where the clinical pathway was previously trained on unscaled vitals but evaluated against `StandardScaler`-transformed inputs. Harmonized the preprocessing pipeline across training and inference routines.
+
+#### 4. Fusion-Level Explainable AI (XAI) Suite
+- **Comprehensive Explainability Module:** Engineered [`src/explainability/multimodal_explain.py`](./src/explainability/multimodal_explain.py) to bring transparency to the fusion decision-making process:
+  - **Modality Concordance Evaluation:** Designed automated clinical concordance detection categorizing inputs into `Concordant Consensus` vs. `Discordant Signals Resolved`, delivering evidence-based clinical reasoning when imaging and systemic telemetry diverge.
+  - **Leave-One-Out Marginal Attributions:** Implemented cooperative Shapley-style marginal impact scoring ($\Delta_i = \max(0, P_{\text{full}}(c^*) - P_{-i}(c^*))$) to quantify the exact contribution of each modality to the winning diagnostic class.
+  - **$3 \times 3$ Attention Flow Extraction:** Exposing full inter-modality attention weight matrices through API schemas to visualize inter-stream information routing.
+  - **Dual-Pathway Explainability Hook:** Coupled fusion outputs with Grad-CAM spatial heatmaps for thoracic radiograph localization and SHAP TreeExplainer feature importance rankings for vital signs.
+
+#### 5. Frontend Multimodal UI & Integration Testing
+- **Interactive Multimodal Reasoning Interface:** Connected the frontend ([`frontend/multimodal.html`](./frontend/multimodal.html), [`frontend/js/multimodal.js`](./frontend/js/multimodal.js)) to dynamic API responses—eliminating hardcoded weights, rendering real-time gating bars, concordance status banners, interactive $3 \times 3$ attention heatmaps, and dual deep-dive XAI tabs.
+- **Automated Test Suite:** Authored [`tests/test_audit_fusion.py`](./tests/test_audit_fusion.py) covering conflicting signal resolution, concordant pneumonia synthesis, and single-modality masking under pytest.
+
+---
+
 ## 👥 Division of Work Among 4 Members
 
 ### 1. Sudarshan Kumar — Chest X-ray & Medical Imaging
@@ -324,7 +370,7 @@ The comprehensive university-level academic project report and architectural dia
 ## 👤 Author & Acknowledgements
 
 - **Developer:** [Dhruv Ashish](https://github.com/dhruvashish)
-- **Repository:** [https://github.com/dhruvashish/MediFusionAi.git](https://github.com/dhruvashish/MediFusionAi.git)
+- **Repository:** [https://github.com/sarrafharshit411-ops/MEDifusion-](https://github.com/sarrafharshit411-ops/MEDifusion-)
 - **Datasets:**
   - *Chest X-Ray Images (Pneumonia)* by Paul Mooney (Kaggle)
   - *Disease Symptom Prediction Dataset* (Kaggle)
@@ -334,4 +380,5 @@ The comprehensive university-level academic project report and architectural dia
 ## 📄 License
 
 This project is licensed strictly for **Educational and Academic Research Purposes**. It is not licensed or approved for clinical diagnosis or direct medical intervention.
+
 
