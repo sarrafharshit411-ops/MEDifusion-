@@ -331,45 +331,9 @@ The comprehensive university-level academic project report and architectural dia
 
 ---
 
-## 👥 Division of Work Among 4 Members
-
-### 1. Sudarshan Kumar — Chest X-ray & Medical Imaging
-- Collect and preprocess the chest X-ray dataset.
-- Develop the pneumonia/normal classification model.
-- Implement CNN-based approaches such as ResNet or EfficientNet.
-- Train, validate and evaluate the chest X-ray model.
-- Implement Grad-CAM to highlight important regions in chest X-rays.
-- Prepare and share the chest X-ray model outputs for multimodal integration.
-
-### 2. Vansh Malhotra — Skin, Brain & Retinal Models
-- Collect and preprocess skin-lesion, brain and retinal image datasets.
-- Develop transfer-learning models for respective image domains.
-- Train, validate and evaluate the models.
-- Implement Grad-CAM visualizations.
-- Prepare trained models and prediction outputs for integration.
-- Coordinate image-model interfaces with the overall fusion workflow.
-
-### 3. Dhruv Ashish — Blood Cell, Symptom/Clinical Analysis & Fusion
-- Preprocess and classify blood-cell images.
-- Develop the symptom-analysis model using XGBoost and Scikit-learn.
-- Process optional clinical features such as age, temperature, heart rate and blood pressure.
-- Implement SHAP-based explanations for structured-feature predictions.
-- Design the Gated Attention Fusion Network for combining available modality representations.
-- Define and test fusion inputs and outputs across image, symptom and clinical modules.
-
-### 4. Niraj Kumar — Frontend, Backend Integration & Deployment
-- Develop the web interface using HTML, CSS and JavaScript.
-- Create image-upload and symptom/clinical-input interfaces.
-- Display model predictions and explainability results.
-- Develop the FastAPI backend and handle model selection and inference requests.
-- Connect frontend with backend and integrate available model/fusion outputs.
-- Manage Docker/localhost deployment, system testing and final integration.
-
----
-
 ## 👤 Author & Acknowledgements
 
-- **Developer:** [Dhruv Ashish](https://github.com/dhruvashish)
+- **Developer:** [Harshit Raj](https://github.com/sarrafharshit411-ops)
 - **Repository:** [https://github.com/sarrafharshit411-ops/MEDifusion-](https://github.com/sarrafharshit411-ops/MEDifusion-)
 - **Datasets:**
   - *Chest X-Ray Images (Pneumonia)* by Paul Mooney (Kaggle)
