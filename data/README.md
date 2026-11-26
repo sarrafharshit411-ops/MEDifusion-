@@ -2,6 +2,8 @@
 
 ## Overview
 
+This repository is maintained as an individual project by **Harshit Raj (S24CSEU0733)**. Dataset acknowledgements below identify upstream dataset creators, not additional project contributors.
+
 This project uses two Kaggle datasets. **They are NOT patient-paired multimodal data.**
 
 ## 1. Chest X-Ray Images (Pneumonia)
