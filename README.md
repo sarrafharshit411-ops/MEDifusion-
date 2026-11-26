@@ -296,7 +296,7 @@ The metrics below are transcribed from the repository's committed evaluation art
 
 The current IMDAI Milestone 4 report is the single canonical project report:
 
-- **Milestone 4 Final Report (PDF):** [`MediFusion_AI_Milestone4_Final_Report_Edited(2).pdf`](https://github.com/sarrafharshit411-ops/MEDifusion-/blob/main/docs/MediFusion_AI_Milestone4_Final_Report_Edited(2).pdf)
+- **Milestone 4 Final Report (PDF):** Use the supplied final report file, then add it to `docs/` as `MediFusion_AI_Milestone4_Final_Report.pdf` using the Git commands below..pdf)
 - **System architecture:** [`docs/medifusion_system_architecture.png`](./docs/medifusion_system_architecture.png)
 
 Superseded comprehensive-report files have been removed. The report describes the project as an academic/research prototype, not a clinically validated diagnostic device.
