@@ -62,172 +62,81 @@
     <!-- ─── Main Content ─── -->
     <main class="workspace-page">
         <div class="app-container">
-            
-            <!-- Header -->
             <div class="workspace-header">
                 <div class="workspace-header-top">
                     <div class="workspace-title-group">
-                        <div class="workspace-icon-box" style="background:rgba(13,148,136,0.12); border-color:rgba(13,148,136,0.3); color:var(--teal);">
-                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
-                        </div>
+                        <div class="workspace-icon-box" style="background:rgba(13,148,136,0.12); border-color:rgba(13,148,136,0.3); color:var(--teal);">🧬</div>
                         <div>
-                            <div style="display:inline-flex; align-items:center; gap:0.45rem; background:rgba(13,148,136,0.08); border:1px solid rgba(13,148,136,0.2); border-radius:9999px; padding:0.25rem 0.75rem; font-size:0.75rem; font-weight:700; color:var(--teal); text-transform:uppercase; letter-spacing:0.05em; margin-bottom:0.4rem;">
-                                <span>● Scientific Documentation &amp; Architecture</span>
-                            </div>
-                            <h1 class="workspace-title">Research Methodology &amp; Dataset Specifications</h1>
-                            <p class="workspace-subtitle">Formal documentation of multimodal dataset sourcing, cross-modal gating mechanics, and clinical evaluation bounds.</p>
+                            <div class="badge badge-teal" style="margin-bottom:0.5rem;">IMDAI Milestone 4 · Research Prototype</div>
+                            <h1 class="workspace-title">Research Methodology &amp; System Documentation</h1>
+                            <p class="workspace-subtitle">Architecture, datasets, model pathways, evaluation context and limitations of MediFusion AI.</p>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Content Grid -->
-            <div style="display:flex; flex-direction:column; gap:2.5rem;">
-                
-                <!-- 1. Scientific Overview -->
-                <div class="workspace-panel" style="padding:2.25rem;">
-                    <span class="badge badge-teal" style="margin-bottom:0.75rem;">Platform Abstract</span>
-                    <h3 style="font-size:1.45rem; font-weight:800; margin-bottom:1rem; color:var(--text-heading);">The Multimodal Imperative in Clinical Decision Support</h3>
-                    <p style="font-size:0.95rem; color:var(--text-secondary); line-height:1.7; margin-bottom:1rem;">
-                        Clinical diagnostic reasoning rarely relies on a single data stream. A radiologist reading a chest radiograph incorporates clinical history and vital signs; an emergency physician evaluating acute dyspnea relies simultaneously on thoracic imaging, oxygenation saturation levels, and symptom onset timelines.
-                    </p>
-                    <p style="font-size:0.95rem; color:var(--text-secondary); line-height:1.7;">
-                        <strong>MediFusion AI</strong> investigates the fusion architecture required to combine continuous image representations (512-dim visual embeddings), discrete symptom categorical states (15 binary features), and standardized continuous physiological signals (7 vital measurements) into an integrated decision boundary with attention-weighted gating.
-                    </p>
-                </div>
+            <section class="workspace-panel" style="padding:2rem; margin-bottom:1.5rem;">
+                <h2>Project overview</h2>
+                <p>MediFusion AI is a web-based academic prototype that integrates radiology image classification, symptom-based prediction, structured clinical prediction, a 41-class general disease module and an experimental multimodal fusion pathway.</p>
+                <p>The application uses a FastAPI backend and a multi-page HTML, CSS and JavaScript frontend. PyTorch/ResNet-18 supports image classification; XGBoost supports structured prediction; Grad-CAM, SHAP and multimodal analysis utilities provide explanations where implemented.</p>
+                <p><strong>Developer and repository contributor:</strong> Harshit Raj (S24CSEU0733).</p>
+                <p><strong>Project status:</strong> Academic and research prototype only. It is not a clinically validated diagnostic device and must not be used for self-diagnosis or treatment decisions.</p>
+            </section>
 
-                <!-- 2. Dataset Sourcing & Pairings Disclosure -->
-                <div class="workspace-panel" style="padding:2.25rem; border-color:rgba(245,158,11,0.35);">
-                    <div style="display:flex; align-items:center; gap:0.5rem; margin-bottom:0.75rem;">
-                        <span class="badge badge-warning">Critical Scientific Disclosure</span>
-                    </div>
-                    <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:0.75rem; color:var(--text-heading);">Dataset Pairing Characteristics</h3>
-                    <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin-bottom:1rem;">
-                        The training corpus utilizes benchmark medical datasets calibrated across distinct clinical domains:
-                    </p>
-                    <ul style="list-style:none; display:flex; flex-direction:column; gap:0.85rem; margin-bottom:1.25rem;">
-                        <li style="display:flex; align-items:flex-start; gap:0.6rem; font-size:0.9rem; color:var(--text-secondary);">
-                            <span style="color:var(--teal); font-weight:800;">1.</span>
-                            <span><strong>Chest X-Ray Images (Pneumonia)</strong> by Paul Mooney — 5,856 labeled chest radiographs (1,583 Normal, 4,273 Pneumonia) across standardized train/val/test splits.</span>
-                        </li>
-                        <li style="display:flex; align-items:flex-start; gap:0.6rem; font-size:0.9rem; color:var(--text-secondary);">
-                            <span style="color:var(--teal); font-weight:800;">2.</span>
-                            <span><strong>Symptom-Based Disease Prediction Dataset</strong> by MiltonMacGyver — 4,998 structured records covering 15 binary symptoms mapping to Malaria, Pneumonia, and Typhoid.</span>
-                        </li>
-                        <li style="display:flex; align-items:flex-start; gap:0.6rem; font-size:0.9rem; color:var(--text-secondary);">
-                            <span style="color:var(--teal); font-weight:800;">3.</span>
-                            <span><strong>Brain Tumor MRI Dataset</strong> — 7,023 intracranial scans across Glioma, Meningioma, Pituitary Adenoma, and Healthy controls.</span>
-                        </li>
-                        <li style="display:flex; align-items:flex-start; gap:0.6rem; font-size:0.9rem; color:var(--text-secondary);">
-                            <span style="color:var(--teal); font-weight:800;">4.</span>
-                            <span><strong>HAM10000 Dermatoscopy Corpus</strong> — 10,015 pigmented cutaneous lesions across 7 histopathological diagnostic entities.</span>
-                        </li>
-                        <li style="display:flex; align-items:flex-start; gap:0.6rem; font-size:0.9rem; color:var(--text-secondary);">
-                            <span style="color:var(--teal); font-weight:800;">5.</span>
-                            <span><strong>Diabetic Retinopathy Fundus Scans</strong> — 35,126 high-resolution retinal images graded across 5 international clinical disease severity levels.</span>
-                        </li>
-                        <li style="display:flex; align-items:flex-start; gap:0.6rem; font-size:0.9rem; color:var(--text-secondary);">
-                            <span style="color:var(--teal); font-weight:800;">6.</span>
-                            <span><strong>Blood Cell Cytology Microscopy</strong> — 12,444 peripheral blood smear images classifying 4 essential leukocyte lineages.</span>
-                        </li>
-                    </ul>
-                    <div style="background:#fefce8; border:1px solid #fde047; border-radius:var(--radius-md); padding:1.15rem 1.35rem; font-size:0.88rem; color:#854d0e; line-height:1.65;">
-                        <strong style="color:#713f12;">Transparent Data Governance:</strong> Benchmark datasets do <em>not</em> share universal patient-level identification numbers across disparate sources. Multimodal fusion in this prototype demonstrates the <strong>machine learning fusion architecture</strong> (gated attention, cross-modal tokenization, and modality-masking) rather than a single patient-paired cohort.
-                    </div>
-                </div>
+            <section class="workspace-panel" style="padding:2rem; margin-bottom:1.5rem;">
+                <h2>System architecture</h2>
+                <p>The multimodal pathway combines a 512-dimensional image representation, a 15-dimensional symptom representation and a 22-dimensional clinical representation. Each stream is projected to a shared 128-dimensional space by the current GatedAttentionFusion source defaults.</p>
+                <ul>
+                    <li><strong>Image stream:</strong> ResNet-18 feature extraction and image classification.</li>
+                    <li><strong>Symptom stream:</strong> binary symptom features for structured prediction.</li>
+                    <li><strong>Clinical stream:</strong> 15 symptom indicators plus seven physiological values.</li>
+                    <li><strong>Fusion:</strong> learnable per-modality gates, availability masking, multi-head attention and a four-class classifier.</li>
+                    <li><strong>Output:</strong> structured predictions, modality weights and explanation payloads where available.</li>
+                </ul>
+                <p>The current source-code defaults are <code>projection_dim=128</code> and <code>num_heads=2</code> in <code>src/models/fusion_model.py</code>.</p>
+            </section>
 
-                <!-- 3. Mathematical Architecture Formulation -->
-                <div class="workspace-panel" style="padding:2.25rem;">
-                    <span class="badge badge-teal" style="margin-bottom:0.75rem;">Theoretical Formulation</span>
-                    <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:1rem; color:var(--text-heading);">Gated Cross-Modal Multi-Head Attention Architecture</h3>
-                    <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin-bottom:1.25rem;">
-                        Let each modality stream $m \in \{\text{vision}, \text{symptoms}, \text{clinical}\}$ be projected into a shared $d$-dimensional embedding space ($d=128$):
-                    </p>
-                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-base); border-radius:10px; padding:1.25rem; font-family:'JetBrains Mono',monospace; font-size:0.85rem; color:var(--text-heading); margin-bottom:1.25rem; line-height:1.7;">
-                        e_vision = Linear(512 &rarr; 128)(ResNet18(I))<br>
-                        e_symptom = Linear(15 &rarr; 128)(Softprob(S))<br>
-                        e_vitals = Linear(22 &rarr; 128)(StandardScaler(V))
-                    </div>
-                    <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin-bottom:1rem;">
-                        Cross-attention tokens are formed by stacking available modalities $[e_1, e_2, \dots, e_k]^T \in \mathbb{R}^{k \times d}$. When any modality is missing, an attention key-padding mask enforces zero contribution:
-                    </p>
-                    <div style="background:var(--bg-surface-subtle); border:1px solid var(--border-base); border-radius:10px; padding:1.25rem; font-family:'JetBrains Mono',monospace; font-size:0.85rem; color:var(--text-heading); line-height:1.7;">
-                        Attention(Q, K, V) = softmax((Q K^T) / &radic;d_k + Mask) V<br>
-                        Gate_m = &sigma;(Linear(128 &rarr; 1)([e_m; Context]))<br>
-                        Output = Classifier(&sum; Gate_m &middot; e_m)
-                    </div>
-                </div>
+            <section class="workspace-panel" style="padding:2rem; margin-bottom:1.5rem;">
+                <h2>Datasets and validation boundaries</h2>
+                <p>Chest X-ray and symptom datasets come from independent sources and are not linked by patient identifiers. Clinical physiological values for the fusion demonstration include synthetic data. Accordingly, the fusion pathway demonstrates architectural integration, not patient-level clinical validity.</p>
+                <p>Dataset references and their respective task details are recorded in <code>data/README.md</code>. Upstream dataset creators are acknowledged as data sources; they are not represented as project developers or contributors.</p>
+            </section>
 
-                <!-- 4. Clinical Governance & Limits -->
-                <div class="workspace-panel" style="padding:2.25rem;">
-                    <span class="badge badge-danger" style="margin-bottom:0.75rem;">Safety Bounds</span>
-                    <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:1rem; color:var(--text-heading);">Clinical Governance &amp; Ethical Guardrails</h3>
-                    <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7; margin-bottom:1rem;">
-                        MediFusion AI is built explicitly as a <strong>diagnostic decision-support prototype</strong> for research and educational investigation. It is not intended for autonomous primary clinical diagnosis or prescriptive intervention without human oversight.
-                    </p>
-                    <p style="font-size:0.92rem; color:var(--text-secondary); line-height:1.7;">
-                        Every algorithmic prediction must be verified by a board-certified medical specialist. In acute distress emergencies (chest pain, stroke symptoms, acute dyspnea), individuals must immediately contact local emergency medical services.
-                    </p>
+            <section class="workspace-panel" style="padding:2rem; margin-bottom:1.5rem;">
+                <h2>Recorded evaluation results</h2>
+                <p>The values below are copied from committed evaluation artifacts and the IMDAI Milestone 4 report. They have not been independently re-run during this documentation update.</p>
+                <div style="overflow-x:auto;">
+                    <table>
+                        <thead><tr><th>Model / Task</th><th>Accuracy</th><th>Macro F1</th><th>ROC-AUC</th></tr></thead>
+                        <tbody>
+                            <tr><td>Chest X-ray</td><td>85.10%</td><td>82.38%</td><td>95.40%</td></tr>
+                            <tr><td>Brain tumour MRI</td><td>95.50%</td><td>95.42%</td><td>98.23%</td></tr>
+                            <tr><td>Skin lesion</td><td>53.85%</td><td>50.95%</td><td>91.74%</td></tr>
+                            <tr><td>Diabetic retinopathy</td><td>10.79%</td><td>17.25%</td><td>71.90%</td></tr>
+                            <tr><td>Blood-cell classification</td><td>87.86%</td><td>88.15%</td><td>95.41%</td></tr>
+                            <tr><td>Symptom model</td><td>87.20%</td><td>87.20%</td><td>96.91%</td></tr>
+                            <tr><td>Clinical model</td><td>87.10%</td><td>87.08%</td><td>97.09%</td></tr>
+                        </tbody>
+                    </table>
                 </div>
+                <p>Gated fusion records 93.80% best validation accuracy; this is not a held-out test metric. Skin-lesion and especially retinopathy results require further improvement.</p>
+            </section>
 
-            </div>
+            <section class="workspace-panel" style="padding:2rem; margin-bottom:1.5rem;">
+                <h2>Explainability</h2>
+                <p><strong>Grad-CAM</strong> produces image activation heatmaps; <strong>SHAP</strong> attributes tabular model outputs to input features; <strong>modality ablation</strong> estimates changes in the winning-class score when a stream is removed; and <strong>cross-modal attention</strong> exposes a 3 × 3 attention matrix.</p>
+                <p>These visualisations describe aspects of model computation. They are not proof of pathology, causality or clinical diagnosis.</p>
+            </section>
+
+            <section class="workspace-panel" style="padding:2rem;">
+                <h2>Developer &amp; contributor</h2>
+                <p><strong>Harshit Raj</strong> · S24CSEU0733</p>
+                <p>Individual project repository maintained by Harshit Raj. The documented focus includes multimodal fusion architecture, fusion data preparation and training, modality masking and gating, fusion-level explainability, API schema/route integration, multimodal frontend integration and audit testing. See the GitHub commit history and source files for implementation-level details.</p>
+                <p><a href="https://github.com/sarrafharshit411-ops/MEDifusion-" target="_blank" rel="noopener">View the MediFusion AI GitHub repository</a></p>
+                <p><strong>Safety notice:</strong> MediFusion AI is an educational and research prototype. It has not been clinically validated or approved for medical diagnosis, and its outputs must not be used to make treatment decisions.</p>
+            </section>
         </div>
     </main>
 
-    <!-- ─── Complete Healthcare Research Footer ─── -->
-    <footer class="site-footer">
-        <div class="app-container-wide">
-            <div class="footer-grid">
-                <div class="footer-brand-col">
-                    <div class="footer-brand">
-                        <div class="brand-icon">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 2v20M2 12h20M4.93 4.93l14.14 14.14M4.93 19.07l14.14-14.14"/></svg>
-                        </div>
-                        <span class="brand-text">MediFusion<span>AI</span></span>
-                    </div>
-                    <p class="footer-tagline">
-                        Enterprise multimodal deep learning platform for clinical decision support. Gated cross-modal multi-head attention across radiology, dermatoscopy, fundoscopy, cytology, and clinical phenotyping.
-                    </p>
-                </div>
-                <div>
-                    <h4 class="footer-col-title">Clinical Modalities</h4>
-                    <ul class="footer-links">
-                        <li><a href="/brain-tumor">Brain Tumor MRI</a></li>
-                        <li><a href="/skin-cancer">Cutaneous Lesions</a></li>
-                        <li><a href="/retinopathy">Diabetic Retinopathy</a></li>
-                        <li><a href="/blood-cell">Blood Cell Cytology</a></li>
-                        <li><a href="/chest-xray">Thoracic Radiography</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="footer-col-title">Intelligence Engines</h4>
-                    <ul class="footer-links">
-                        <li><a href="/multimodal">Multimodal Gated Fusion</a></li>
-                        <li><a href="/symptom-analysis">41-Disease NLP Suite</a></li>
-                        <li><a href="/image-analysis">Unified Studio</a></li>
-                        <li><a href="/insights">Grad-CAM &amp; SHAP Explainability</a></li>
-                        <li><a href="/benchmarks">Model Benchmarks</a></li>
-                    </ul>
-                </div>
-                <div>
-                    <h4 class="footer-col-title">Clinical Governance</h4>
-                    <ul class="footer-links">
-                        <li><a href="/about">Research Abstract</a></li>
-                        <li><a href="/benchmarks">Empirical Metrics</a></li>
-                        <li><a href="/about">Dataset Disclosures</a></li>
-                        <li><a href="/about">Safety Bounds</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="footer-bottom">
-                <div>© 2026 MediFusion AI Research Consortium. All models calibrated on gold-standard cohorts.</div>
-                <div>For Research &amp; Educational Decision Support Only. Not FDA Approved for Standalone Clinical Diagnosis.</div>
-            </div>
-        </div>
-    </footer>
-
-    <script src="/static/js/api.js?v=6.0"></script>
-    <script src="/static/js/ui.js?v=6.0"></script>
-    <script src="/static/js/navigation.js?v=6.0"></script>
 </body>
 </html>
